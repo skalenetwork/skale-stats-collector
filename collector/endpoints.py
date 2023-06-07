@@ -107,7 +107,6 @@ def endpoints_for_schain(schains_internal_contract, nodes_contract, schain_id):
 
 
 def get_all_names():
-
     provider = HTTPProvider(ENDPOINT)
     web3 = Web3(provider)
     sm_abi = read_json(ABI_FILEPATH)
