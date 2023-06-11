@@ -10,3 +10,6 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 PROJECT_PATH = os.path.join(DIR_PATH, os.pardir)
 DATA_DIR = os.path.join(PROJECT_PATH, 'data')
 META_DATA_PATH = os.path.join(DATA_DIR, 'meta.json')
+
+DB_NAME = 'stats.db'
+DB_FILE_PATH = os.path.join(DATA_DIR, DB_NAME)
