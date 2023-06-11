@@ -1,5 +1,6 @@
 from web3 import Web3, HTTPProvider
 
+
 class Collector:
     def __init__(self, schain_name, endpoint):
         self.schain_name = schain_name
@@ -11,7 +12,8 @@ class Collector:
     def catchup_blocks(self):
         try:
             latest_block = self.web3.eth.get_block_number()
-            for i in range(self.last_block, latest_block):
+            # for i in range(self.last_block, latest_block):
+            for i in range(10):
                 block = self.web3.eth.get_block(i, True)
                 self.update_daily_stats(block)
         except:

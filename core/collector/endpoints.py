@@ -6,8 +6,8 @@ from enum import Enum
 from web3 import Web3, HTTPProvider, WebsocketProvider
 from Crypto.Hash import keccak
 
-from collector import ENDPOINT, ABI_FILEPATH, PROXY_DOMAIN_NAME
-from utils.helper import read_json
+from core import ENDPOINT, ABI_FILEPATH, PROXY_DOMAIN_NAME
+from core.utils.helper import read_json
 
 logger = logging.getLogger(__name__)
 

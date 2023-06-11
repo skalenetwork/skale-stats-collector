@@ -1,8 +1,7 @@
 import logging
 
-from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField,
-                    ForeignKeyField)
-from collector import DB_FILE_PATH
+from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField)
+from core import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ class BaseModel(Model):
 
 
 class UserStats(BaseModel):
-    id = PrimaryKeyField()
     address = CharField()
     date = DateField()
     schain_name = CharField()
@@ -40,8 +38,8 @@ class DailyStatsRecord(BaseModel):
     id = PrimaryKeyField()
     date = DateField()
     schain_name = CharField()
-    # month = ForeignKeyField(MonthlyStatsRecord, related_name='daily_stats')
 
+    user_count_total = IntegerField(default=0)
     tx_count_total = IntegerField(default=0)
     block_count_total = IntegerField(default=0)
     gas_total_used = FloatField(default=0)
