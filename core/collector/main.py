@@ -1,3 +1,4 @@
+import logging
 import os
 
 from core import META_DATA_PATH, ABI_FILEPATH
@@ -6,6 +7,8 @@ from core.collector.endpoints import get_all_names, is_dkg_passed, get_schain_en
 from core.collector.statistics import Collector
 from core.utils.logger import init_logger
 from core.utils.meta import create_meta_file, get_meta_file, update_meta_file
+
+logger = logging.getLogger(__name__)
 
 
 def run_collectors():
