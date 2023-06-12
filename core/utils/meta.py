@@ -20,7 +20,7 @@ def get_schain_meta(schain_name):
 def get_schain_endpoint(schain_name):
     meta = get_schain_meta(schain_name)
     if meta:
-        return meta.get(schain_name)
+        return meta.get('endpoint')
     else:
         return None
 

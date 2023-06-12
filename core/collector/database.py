@@ -49,17 +49,33 @@ class DailyStatsRecord(BaseModel):
     gas_fees_total_usd = FloatField(default=0)
 
 
-def insert_new_block(schain_name, date, txs, users):
-    _users = [{'address': user, 'date':date, 'schain_name':schain_name} for user in users]
+def insert_new_block(schain_name, date, txs, users, gas):
+    _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
     UserStats.insert_many(_users).on_conflict_ignore().execute()
-    day_users = UserStats.select().where(UserStats.date==date and UserStats.schain_name==schain_name).count()
-    DailyStatsRecord.update({
-        DailyStatsRecord.schain_name: schain_name,
-        DailyStatsRecord.date: date,
-        DailyStatsRecord.block_count_total: DailyStatsRecord.block_count_total + 1,
-        DailyStatsRecord.tx_count_total: DailyStatsRecord.tx_count_total + txs,
-        DailyStatsRecord.user_count_total: day_users
-    }).execute()
+    day_users = UserStats.select().where(
+        UserStats.date == date and
+        UserStats.schain_name == schain_name).count()
+    daily_records = DailyStatsRecord.select().where(
+        DailyStatsRecord.schain_name == schain_name and
+        DailyStatsRecord.date == date).count()
+    if daily_records:
+        DailyStatsRecord.update({
+            DailyStatsRecord.schain_name: schain_name,
+            DailyStatsRecord.date: date,
+            DailyStatsRecord.block_count_total: DailyStatsRecord.block_count_total + 1,
+            DailyStatsRecord.tx_count_total: DailyStatsRecord.tx_count_total + txs,
+            DailyStatsRecord.user_count_total: day_users,
+            DailyStatsRecord.gas_total_used: DailyStatsRecord.gas_total_used + gas
+        }).execute()
+    else:
+        DailyStatsRecord.insert({
+            DailyStatsRecord.schain_name: schain_name,
+            DailyStatsRecord.date: date,
+            DailyStatsRecord.block_count_total: 1,
+            DailyStatsRecord.tx_count_total: txs,
+            DailyStatsRecord.user_count_total: day_users,
+            DailyStatsRecord.gas_total_used: gas
+        }).execute()
 
 
 def get_data(schain_name, date):
