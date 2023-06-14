@@ -18,8 +18,8 @@ class PulledBlocks(BaseModel):
     block_number = IntegerField()
 
 
-class Prices(BaseModel):
-    date = DateField()
+class DailyPrices(BaseModel):
+    date = DateField(unique=True)
     gas_price = IntegerField(default=0)
     eth_price = FloatField(default=0)
 
@@ -33,7 +33,6 @@ class UserStats(BaseModel):
         indexes = (
             (('address', 'date', 'schain_name'), True),
         )
-
 
 
 class DailyStatsRecord(BaseModel):
@@ -71,8 +70,32 @@ def insert_new_block(schain_name, number, date, txs, users, gas):
         logger.debug(f'Block {number} was already pulled')
 
 
-def get_data(schain_name, date):
-    return DailyStatsRecord.select().where((DailyStatsRecord.schain_name ==schain_name)).dicts()
+def update_daily_prices(prices):
+    _prices = [{'date': k, 'eth_price': prices[k][0], 'gas_price': prices[k][1]} for k in prices]
+    DailyPrices.insert_many(_prices).on_conflict_ignore().execute()
+    for i in DailyPrices.select().dicts():
+        logger.info(i)
+
+
+def refetch_daily_price_stats(schain_name):
+    unfetched_days = DailyStatsRecord.select().where(
+        (DailyStatsRecord.schain_name == schain_name) &
+        (DailyStatsRecord.gas_fees_total_gwei == 0) &
+        (DailyStatsRecord.gas_total_used != 0)
+    )
+    for day in unfetched_days:
+        logger.info(day.date)
+        prices = DailyPrices.select().where(DailyPrices.date == day.date).get_or_none()
+        logger.info(prices)
+        if prices:
+            day.gas_fees_total_gwei = day.gas_total_used * prices.gas_price / 10 ** 9
+            day.gas_fees_total_eth = day.gas_total_used * prices.gas_price / 10 ** 18
+            day.gas_fees_total_usd = day.gas_fees_total_eth * prices.eth_price
+            day.save()
+
+
+def get_data(schain_name):
+    return DailyStatsRecord.select().where(DailyStatsRecord.schain_name == schain_name).dicts()
 
 
 def create_tables():
@@ -87,3 +110,7 @@ def create_tables():
     if not PulledBlocks.table_exists():
         logger.info('Creating PulledBlocks table...')
         PulledBlocks.create_table()
+
+    if not DailyPrices.table_exists():
+        logger.info('Creating DailyPrices table...')
+        DailyPrices.create_table()

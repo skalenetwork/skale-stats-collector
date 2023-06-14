@@ -1,9 +1,13 @@
 import concurrent
+import json
 import logging
 from datetime import datetime
+
+import requests as requests
 from web3 import Web3, HTTPProvider
 
-from core.collector.database import get_data, insert_new_block
+from core import ETH_API_KEY
+from core.collector.database import get_data, insert_new_block, update_daily_prices
 from core.utils.meta import get_schain_endpoint
 
 logger = logging.getLogger(__name__)
@@ -45,4 +49,48 @@ class Collector:
         return 0
 
     def get_daily_stats(self, date):
-        return get_data(self.schain_name, date)
+        return get_data(self.schain_name)
+
+
+class PricesCollector:
+    ETH_API_URL='https://api.etherscan.io/api'
+
+    def fetch_daily_prices(self, start_date, end_date):
+        _gas_prices = self.get_gas_prices(start_date, end_date)
+        _gas_prices = {i['UTCDate']: i['avgGasPrice_Wei'] for i in _gas_prices}
+
+        _eth_prices = self.get_eth_prices(start_date, end_date)
+        _eth_prices = {i['UTCDate']: i['value'] for i in _eth_prices}
+
+        keys = _eth_prices.keys()
+        values = zip(_eth_prices.values(), _gas_prices.values())
+        data = dict(zip(keys, values))
+        update_daily_prices(data)
+
+    @staticmethod
+    def get_gas_prices(start_date, end_date):
+        url = f'{PricesCollector.ETH_API_URL}?module=stats&action=dailyavggasprice&' \
+              f'startdate={start_date}&' \
+              f'enddate={end_date}&' \
+              f'sort=asc&' \
+              f'apikey={ETH_API_KEY}'
+        try:
+            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            data = json.loads(response.text)['result']
+            return data
+        except requests.RequestException as e:
+            logger.warning(f'Could not download gas_prices: {e}')
+
+    @staticmethod
+    def get_eth_prices(start_date, end_date):
+        url = f'{PricesCollector.ETH_API_URL}?module=stats&action=ethdailyprice&' \
+              f'startdate={start_date}&' \
+              f'enddate={end_date}&' \
+              f'sort=asc&' \
+              f'apikey={ETH_API_KEY}'
+        try:
+            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            data = json.loads(response.text)['result']
+            return data
+        except requests.RequestException as e:
+            logger.warning(f'Could not download gas_prices: {e}')
