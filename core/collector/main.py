@@ -10,9 +10,14 @@ from core.utils.meta import create_meta_file, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
 
-
+# 5446570 - 5560570
 def run_collectors():
-    pass
+    logger.info('stats')
+    c = Collector('cryptoblades', from_block=5540000, to_block=5560570)
+    c.catchup_blocks()
+    data = c.get_daily_stats('')
+    for d in data:
+        logger.info(d)
 
 
 def refresh_meta():

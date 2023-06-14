@@ -21,7 +21,7 @@ class Collector:
     def catchup_blocks(self):
         try:
             latest_block = self.to_block if self.to_block else self.web3.eth.get_block_number()
-            with concurrent.futures.ThreadPoolExecutor(max_workers=100) as e:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as e:
                 res = []
                 fut = [e.submit(self.download, j) for j in range(self.last_block, latest_block)]
                 for r in concurrent.futures.as_completed(fut):
@@ -39,7 +39,7 @@ class Collector:
         users = [tx['from'] for tx in block['transactions']]
         date = datetime.fromtimestamp(block['timestamp'])
         gas = block['gasUsed']
-        insert_new_block(self.schain_name, str(date.date()), len(users), users, gas)
+        insert_new_block(self.schain_name, block['number'], str(date.date()), len(users), users, gas)
 
     def get_last_block(self):
         return 0
