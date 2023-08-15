@@ -25,16 +25,25 @@ class Collector:
     def catchup_blocks(self):
         try:
             latest_block = self.to_block if self.to_block else self.web3.eth.get_block_number()
-            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as e:
-                res = []
-                fut = [e.submit(self.download, j) for j in range(self.last_block, latest_block)]
-                for r in concurrent.futures.as_completed(fut):
-                    res.append(r.result())
-            for block in res:
-                self.update_daily_stats(block)
+            first_batch_block = self.last_block
+            last_batch_block = min(first_batch_block + 1000, latest_block)
+            while first_batch_block < latest_block:
+                self.catchup_batch_blocks(first_batch_block, last_batch_block)
+                first_batch_block = last_batch_block
+                last_batch_block = min(first_batch_block + 1000, latest_block)
         except Exception as error:
             logger.info(error)
             pass
+
+    def catchup_batch_blocks(self, first_batch_block, last_batch_block):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as e:
+            res = []
+            fut = [e.submit(self.download, j) for j in range(first_batch_block, last_batch_block)]
+            for r in concurrent.futures.as_completed(fut):
+                res.append(r.result())
+        logger.info(f'Writing {len(res)} blocks to DB')
+        for block in res:
+            self.update_daily_stats(block)
 
     def download(self, j):
         return self.web3.eth.get_block(j, True)

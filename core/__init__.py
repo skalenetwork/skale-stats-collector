@@ -3,6 +3,7 @@ import os
 ENDPOINT = os.environ.get('ETH_ENDPOINT')
 ETH_API_KEY = os.environ.get('ETH_API_KEY')
 PROXY_DOMAIN_NAME = os.environ.get('PROXY_DOMAIN')
+SCHAIN_NAMES = os.environ.get('SCHAIN_NAMES')
 
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
