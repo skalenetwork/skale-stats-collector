@@ -17,6 +17,7 @@ def run_collectors():
     meta = get_meta_file()
     for name in meta:
         collector = Collector(name)
+        # logger.info(collector.get_daily_stats())
         Thread(target=collector.catchup_blocks, daemon=True, name=name).start()
     while True:
         sleep(1)

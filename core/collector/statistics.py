@@ -8,7 +8,7 @@ from web3 import Web3, HTTPProvider
 
 from core import ETH_API_KEY
 from core.collector.database import get_data, insert_new_block, update_daily_prices
-from core.utils.meta import get_schain_endpoint
+from core.utils.meta import get_schain_endpoint, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class Collector:
             latest_block = self.to_block if self.to_block else self.web3.eth.get_block_number()
             first_batch_block = self.last_block
             last_batch_block = min(first_batch_block + 1000, latest_block)
+            logger.info(f'Catching up blocks from {first_batch_block} to {latest_block}')
             while first_batch_block < latest_block:
                 self.catchup_batch_blocks(first_batch_block, last_batch_block)
                 first_batch_block = last_batch_block
@@ -36,14 +37,17 @@ class Collector:
             pass
 
     def catchup_batch_blocks(self, first_batch_block, last_batch_block):
+        logger.debug(f'Collecting blocks from {first_batch_block} to {last_batch_block}')
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as e:
-            res = []
-            fut = [e.submit(self.download, j) for j in range(first_batch_block, last_batch_block)]
-            for r in concurrent.futures.as_completed(fut):
-                res.append(r.result())
-        logger.info(f'Writing {len(res)} blocks to DB')
-        for block in res:
+            results = []
+            futures = [e.submit(self.download, block_num) for block_num in
+                   range(first_batch_block, last_batch_block)]
+            for thread in concurrent.futures.as_completed(futures):
+                results.append(thread.result())
+        logger.debug(f'Writing {len(results)} blocks to DB')
+        for block in results:
             self.update_daily_stats(block)
+        self.update_last_block(last_batch_block)
 
     def download(self, j):
         return self.web3.eth.get_block(j, True)
@@ -54,11 +58,19 @@ class Collector:
         gas = block['gasUsed']
         insert_new_block(self.schain_name, block['number'], str(date.date()), len(users), users, gas)
 
-    def get_last_block(self):
-        return 0
+    def update_last_block(self, last_block):
+        meta = get_meta_file()
+        meta[self.schain_name]['last_updated_block'] = last_block
+        update_meta_file(meta)
 
-    def get_daily_stats(self, date):
-        return get_data(self.schain_name)
+    def get_last_block(self):
+        return get_meta_file()[self.schain_name].get('last_updated_block', 0)
+
+    def get_daily_stats(self):
+        daily_stats_raw =  get_data(self.schain_name)
+        for i in daily_stats_raw:
+            print(i)
+        return True
 
 
 class PricesCollector:
