@@ -75,6 +75,26 @@ def insert_new_block(schain_name, number, date, txs, users, gas):
     #     logger.debug(f'Block {number} was already pulled')
 
 
+def insert_new_block_data(schain_name, number, date, txs, gas):
+    daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
+    daily_record.block_count_total += 1
+    daily_record.tx_count_total += txs
+    daily_record.gas_total_used += gas
+    daily_record.save()
+    PulledBlocks.create(schain_name=schain_name, block_number=number).save()
+
+
+def insert_new_daily_users(schain_name, date, users):
+    _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
+    UserStats.insert_many(_users).on_conflict_ignore().execute()
+    daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
+    day_users = UserStats.select().where(
+        (UserStats.date == date) &
+        (UserStats.schain_name == schain_name)).count()
+    daily_record.user_count_total = day_users
+    daily_record.save()
+
+
 def update_daily_prices(prices):
     _prices = [{'date': k, 'eth_price': prices[k][0], 'gas_price': prices[k][1]} for k in prices]
     DailyPrices.insert_many(_prices).on_conflict_ignore().execute()

@@ -7,7 +7,8 @@ import requests as requests
 from web3 import Web3, HTTPProvider
 
 from core import ETH_API_KEY
-from core.collector.database import get_data, insert_new_block, update_daily_prices
+from core.collector.database import get_data, insert_new_block, update_daily_prices, insert_new_block_data, \
+    insert_new_daily_users
 from core.utils.meta import get_schain_endpoint, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
@@ -46,18 +47,21 @@ class Collector:
             for thread in concurrent.futures.as_completed(futures):
                 results.append(thread.result())
         logger.info(f'Writing {len(results)} blocks to DB')
-        for block in results:
-            self.update_daily_stats(block)
+        self.insert_block_batch(results)
         self.update_last_block(last_batch_block)
 
-    def download(self, j):
-        return self.web3.eth.get_block(j, True)
+    def download(self, block_number):
+        return self.web3.eth.get_block(block_number, True)
 
-    def update_daily_stats(self, block):
-        users = [tx['from'] for tx in block['transactions']]
-        date = datetime.fromtimestamp(block['timestamp'])
-        gas = block['gasUsed']
-        insert_new_block(self.schain_name, block['number'], str(date.date()), len(users), users, gas)
+    def insert_block_batch(self, batch):
+        users_daily = {}
+        for block in batch:
+            date = str(datetime.fromtimestamp(block['timestamp']).date())
+            users_daily[date] = users_daily.get(date, []) + [tx['from'] for tx in block['transactions']]
+            gas = block['gasUsed']
+            insert_new_block_data(self.schain_name, block['number'], date, len(block['transactions']), gas)
+        for date in users_daily:
+            insert_new_daily_users(self.schain_name, date, users_daily[date])
 
     def update_last_block(self, last_block):
         meta = get_meta_file()
@@ -72,11 +76,19 @@ class Collector:
         res = {}
         for i in daily_stats_raw:
             date = i['date'].strftime('%Y-%m')
-            if res.get(date):
-                res[date] += i['user_count_total']
-            else:
-                res[date] = i['user_count_total']
-        print(res)
+            if not res.get(date):
+                res[date] = {
+                    'tx_count_total': 0,
+                    'block_count_total': 0,
+                    'gas_total_used': 0,
+                    'user_count_total': 0
+                }
+            for k in res[date]:
+                res[date][k] += i[k]
+            # if res.get(date):
+            #     res[date] += i['user_count_total']
+            # else:
+            #     res[date] = i['user_count_total']
         return True
 
 
