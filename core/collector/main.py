@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 def run_collectors():
-    meta = get_meta_file()
-    for name in meta:
+    names = get_all_names()
+    for name in names:
         collector = Collector(name)
         # logger.info(collector.get_daily_stats())
         Thread(target=collector.catchup_blocks, daemon=True, name=name).start()

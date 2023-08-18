@@ -11,6 +11,7 @@ from core.collector.database import get_data, insert_new_block, update_daily_pri
 from core.utils.meta import get_schain_endpoint, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
 
 
 class Collector:
@@ -37,14 +38,14 @@ class Collector:
             pass
 
     def catchup_batch_blocks(self, first_batch_block, last_batch_block):
-        logger.debug(f'Collecting blocks from {first_batch_block} to {last_batch_block}')
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as e:
+        logger.info(f'Collecting blocks from {first_batch_block} to {last_batch_block}')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as e:
             results = []
             futures = [e.submit(self.download, block_num) for block_num in
                    range(first_batch_block, last_batch_block)]
             for thread in concurrent.futures.as_completed(futures):
                 results.append(thread.result())
-        logger.debug(f'Writing {len(results)} blocks to DB')
+        logger.info(f'Writing {len(results)} blocks to DB')
         for block in results:
             self.update_daily_stats(block)
         self.update_last_block(last_batch_block)
@@ -67,9 +68,15 @@ class Collector:
         return get_meta_file()[self.schain_name].get('last_updated_block', 0)
 
     def get_daily_stats(self):
-        daily_stats_raw =  get_data(self.schain_name)
+        daily_stats_raw = get_data(self.schain_name)
+        res = {}
         for i in daily_stats_raw:
-            print(i)
+            date = i['date'].strftime('%Y-%m')
+            if res.get(date):
+                res[date] += i['user_count_total']
+            else:
+                res[date] = i['user_count_total']
+        print(res)
         return True
 
 

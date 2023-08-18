@@ -50,24 +50,29 @@ class DailyStatsRecord(BaseModel):
 
 
 def insert_new_block(schain_name, number, date, txs, users, gas):
-    is_block_pulled = PulledBlocks.select().where(
-        (PulledBlocks.block_number == number) &
-        (PulledBlocks.schain_name == schain_name)).count()
-    if is_block_pulled == 0:
-        _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
-        UserStats.insert_many(_users).on_conflict_ignore().execute()
-        day_users = UserStats.select().where(
-            (UserStats.date == date) &
-            (UserStats.schain_name == schain_name)).count()
-        daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
-        daily_record.block_count_total += 1
-        daily_record.tx_count_total += txs
-        daily_record.user_count_total = day_users
-        daily_record.gas_total_used += gas
-        daily_record.save()
-        PulledBlocks.create(schain_name=schain_name, block_number=number).save()
-    else:
-        logger.debug(f'Block {number} was already pulled')
+    # logger.info('A')
+    # is_block_pulled = PulledBlocks.select().where(
+    #     (PulledBlocks.block_number == number) &
+    #     (PulledBlocks.schain_name == schain_name)).count()
+    # if is_block_pulled == 0:
+    # logger.info('B')
+    _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
+    UserStats.insert_many(_users).on_conflict_ignore().execute()
+    day_users = UserStats.select().where(
+        (UserStats.date == date) &
+        (UserStats.schain_name == schain_name)).count()
+    # logger.info('C')
+    daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
+    daily_record.block_count_total += 1
+    daily_record.tx_count_total += txs
+    daily_record.user_count_total = day_users
+    daily_record.gas_total_used += gas
+    daily_record.save()
+    # logger.info('D')
+    PulledBlocks.create(schain_name=schain_name, block_number=number).save()
+    # logger.info('E')
+    # else:
+    #     logger.debug(f'Block {number} was already pulled')
 
 
 def update_daily_prices(prices):
