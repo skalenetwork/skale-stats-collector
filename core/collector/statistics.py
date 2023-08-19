@@ -72,7 +72,7 @@ class Collector:
         return get_meta_file()[self.schain_name].get('last_updated_block', 0)
 
     def get_daily_stats(self):
-        # return get_montly_data(self.schain_name)
+        return get_montly_data(self.schain_name)
         daily_stats_raw = get_daily_data(self.schain_name)
         res = {}
         for i in daily_stats_raw:

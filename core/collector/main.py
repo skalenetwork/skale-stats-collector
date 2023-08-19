@@ -17,11 +17,13 @@ logger = logging.getLogger(__name__)
 def run_collectors():
     names = get_all_names()
     for name in names:
+        logger.info(f'Start catchup for {name}')
         collector = Collector(name)
+        collector.catchup_blocks()
         # print(json.dumps(collector.get_daily_stats(), indent=4))
-        Thread(target=collector.catchup_blocks, daemon=True, name=name).start()
-    while True:
-        sleep(1)
+        # Thread(target=collector.catchup_blocks, daemon=True, name=name).start()
+    # while True:
+    #     sleep(1)
 
 
 def refresh_meta():
