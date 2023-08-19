@@ -1,10 +1,11 @@
+import json
 import logging
 import os
 from threading import Thread
 from time import sleep
 
 from core import META_DATA_PATH, ABI_FILEPATH
-from core.collector.database import create_tables, refetch_daily_price_stats, get_data
+from core.collector.database import create_tables, refetch_daily_price_stats, get_daily_data
 from core.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
 from core.collector.statistics import Collector, PricesCollector
 from core.utils.logger import init_logger
@@ -17,7 +18,7 @@ def run_collectors():
     names = get_all_names()
     for name in names:
         collector = Collector(name)
-        # logger.info(collector.get_daily_stats())
+        # print(json.dumps(collector.get_daily_stats(), indent=4))
         Thread(target=collector.catchup_blocks, daemon=True, name=name).start()
     while True:
         sleep(1)

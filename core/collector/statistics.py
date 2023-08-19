@@ -7,8 +7,8 @@ import requests as requests
 from web3 import Web3, HTTPProvider
 
 from core import ETH_API_KEY
-from core.collector.database import get_data, insert_new_block, update_daily_prices, insert_new_block_data, \
-    insert_new_daily_users
+from core.collector.database import (get_daily_data, update_daily_prices,
+                                     insert_new_block_data, insert_new_daily_users, get_montly_data)
 from core.utils.meta import get_schain_endpoint, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
@@ -72,24 +72,30 @@ class Collector:
         return get_meta_file()[self.schain_name].get('last_updated_block', 0)
 
     def get_daily_stats(self):
-        daily_stats_raw = get_data(self.schain_name)
+        # return get_montly_data(self.schain_name)
+        daily_stats_raw = get_daily_data(self.schain_name)
         res = {}
         for i in daily_stats_raw:
-            date = i['date'].strftime('%Y-%m')
-            if not res.get(date):
-                res[date] = {
-                    'tx_count_total': 0,
-                    'block_count_total': 0,
-                    'gas_total_used': 0,
-                    'user_count_total': 0
-                }
-            for k in res[date]:
-                res[date][k] += i[k]
-            # if res.get(date):
-            #     res[date] += i['user_count_total']
-            # else:
-            #     res[date] = i['user_count_total']
-        return True
+            res[i['date'].strftime('%Y-%m-%d')] = i['user_count_total']
+        return res
+        # daily_stats_raw = get_daily_data(self.schain_name)
+        # res = {}
+        # for i in daily_stats_raw:
+        #     date = i['date'].strftime('%Y-%m')
+        #     if not res.get(date):
+        #         res[date] = {
+        #             'tx_count_total': 0,
+        #             'block_count_total': 0,
+        #             'gas_total_used': 0,
+        #             'user_count_total': 0
+        #         }
+        #     for k in res[date]:
+        #         res[date][k] += i[k]
+        #     # if res.get(date):
+        #     #     res[date] += i['user_count_total']
+        #     # else:
+        #     #     res[date] = i['user_count_total']
+        # return res
 
 
 class PricesCollector:

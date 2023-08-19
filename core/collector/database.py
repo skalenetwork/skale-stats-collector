@@ -1,6 +1,6 @@
 import logging
 
-from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField)
+from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField, fn, JOIN)
 from core import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)
@@ -49,32 +49,6 @@ class DailyStatsRecord(BaseModel):
     gas_fees_total_usd = FloatField(default=0)
 
 
-def insert_new_block(schain_name, number, date, txs, users, gas):
-    # logger.info('A')
-    # is_block_pulled = PulledBlocks.select().where(
-    #     (PulledBlocks.block_number == number) &
-    #     (PulledBlocks.schain_name == schain_name)).count()
-    # if is_block_pulled == 0:
-    # logger.info('B')
-    _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
-    UserStats.insert_many(_users).on_conflict_ignore().execute()
-    day_users = UserStats.select().where(
-        (UserStats.date == date) &
-        (UserStats.schain_name == schain_name)).count()
-    # logger.info('C')
-    daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
-    daily_record.block_count_total += 1
-    daily_record.tx_count_total += txs
-    daily_record.user_count_total = day_users
-    daily_record.gas_total_used += gas
-    daily_record.save()
-    # logger.info('D')
-    PulledBlocks.create(schain_name=schain_name, block_number=number).save()
-    # logger.info('E')
-    # else:
-    #     logger.debug(f'Block {number} was already pulled')
-
-
 def insert_new_block_data(schain_name, number, date, txs, gas):
     daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
     daily_record.block_count_total += 1
@@ -119,8 +93,30 @@ def refetch_daily_price_stats(schain_name):
             day.save()
 
 
-def get_data(schain_name):
+def get_daily_data(schain_name):
     return DailyStatsRecord.select().where(DailyStatsRecord.schain_name == schain_name).dicts()
+
+
+def get_montly_data(schain_name):
+    tx_total = fn.SUM(DailyStatsRecord.tx_count_total).alias('tx_count_total')
+    gas_total = fn.SUM(DailyStatsRecord.gas_total_used).alias('gas_total_used')
+    blocks_total = fn.SUM(DailyStatsRecord.block_count_total).alias('block_count_total')
+    users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
+    query = (DailyStatsRecord
+             .select(fn.strftime('%Y-%m', DailyStatsRecord.date),
+                     tx_total, gas_total, blocks_total)
+             .where((DailyStatsRecord.schain_name == schain_name))
+             .group_by(fn.strftime('%Y-%m', DailyStatsRecord.date))).dicts()
+    query_b = (UserStats
+               .select(fn.strftime('%Y-%m', UserStats.date),
+                     users_total)
+               .where((UserStats.schain_name == schain_name))
+               .group_by(fn.strftime('%Y-%m', UserStats.date))).dicts()
+    for i in query:
+        print(i)
+    for b in query_b:
+        print(b)
+    return
 
 
 def create_tables():
