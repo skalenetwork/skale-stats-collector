@@ -16,3 +16,8 @@ ABI_FILEPATH = os.path.join(DATA_DIR, 'abi.json')
 DB_NAME = 'stats.db'
 DB_FILE_PATH = os.path.join(DATA_DIR, DB_NAME)
 SNAPSHOT_FILE_PATH = os.path.join(DATA_DIR, 'snapshot.json')
+
+# Stats API
+FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT')
+FLASK_APP_HOST = os.environ.get('FLASK_APP_HOST')
+FLASK_HOST_PORT = os.environ.get('FLASK_HOST_PORT')
