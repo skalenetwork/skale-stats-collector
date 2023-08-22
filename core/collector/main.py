@@ -1,16 +1,12 @@
-import json
 import logging
 import os
 from datetime import datetime
-from threading import Thread
-from time import sleep
 
-from core import META_DATA_PATH, ABI_FILEPATH
-from core.collector.database import create_tables, refetch_daily_price_stats, get_daily_data, merge_bases, \
-    get_total_data, get_schain_stats
+from core import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
+from core.collector.database import create_tables, get_schain_stats
 from core.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
-from core.collector.statistics import Collector, PricesCollector
-from core.utils.helper import daemon
+from core.collector.statistics import Collector
+from core.utils.helper import daemon, write_json
 from core.utils.logger import init_logger
 from core.utils.meta import create_meta_file, get_meta_file, update_meta_file
 
@@ -36,7 +32,6 @@ def aggregate_schain_stats(names):
         }
     }
     for name in names:
-        print(name)
         schain_data = get_schain_stats(name)
         stats.update({
             name: schain_data
@@ -50,27 +45,15 @@ def aggregate_schain_stats(names):
 @daemon(delay=600)
 def update_statistics():
     refresh_meta()
-    names = get_all_names()
+    names = get_meta_file().keys()
     for name in names:
         logger.info(f'Start catchup for {name}')
         collector = Collector(name)
         collector.catchup_blocks()
-    aggregate_schain_stats(names)
-
-
-def run_collectors():
-    # names = get_all_names()
-    # st = aggregate_schain_stats(names)
-    # print(json.dumps(st, indent=4))
-    names = get_meta_file()
-    for name in names:
-        logger.info(f'Start catchup for {name}')
-        collector = Collector(name)
-        collector.catchup_blocks()
-        # print(json.dumps(collector.get_daily_stats(), indent=4))
-        # Thread(target=collector.catchup_blocks, daemon=True, name=name).start()
-    # while True:
-    #     sleep(1)
+    logger.info('Aggregating schain stats...')
+    snapshot_data = aggregate_schain_stats(names)
+    write_json(SNAPSHOT_FILE_PATH, snapshot_data)
+    logger.info('Stats updated')
 
 
 def refresh_meta():

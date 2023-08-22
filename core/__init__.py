@@ -15,3 +15,4 @@ ABI_FILEPATH = os.path.join(DATA_DIR, 'abi.json')
 
 DB_NAME = 'stats.db'
 DB_FILE_PATH = os.path.join(DATA_DIR, DB_NAME)
+SNAPSHOT_FILE_PATH = os.path.join(DATA_DIR, 'snapshot.json')
