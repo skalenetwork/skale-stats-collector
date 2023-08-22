@@ -5,13 +5,26 @@ from threading import Thread
 from time import sleep
 
 from core import META_DATA_PATH, ABI_FILEPATH
-from core.collector.database import create_tables, refetch_daily_price_stats, get_daily_data
+from core.collector.database import create_tables, refetch_daily_price_stats, get_daily_data, merge_bases, \
+    get_total_data
 from core.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
 from core.collector.statistics import Collector, PricesCollector
 from core.utils.logger import init_logger
 from core.utils.meta import create_meta_file, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
+
+
+def aggregate_schain_stats():
+    meta = get_meta_file()
+    stats = {}
+    print(len(meta.keys()))
+    for name in meta:
+        logger.info(name)
+        data = get_total_data(name)
+        for key in data:
+            stats[key] = stats.get(key, 0) + data[key]
+    print(stats)
 
 
 def run_collectors():

@@ -1,6 +1,6 @@
 import logging
 
-from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField, fn, JOIN)
+from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField, fn)
 from core import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,8 @@ def insert_new_block_data(schain_name, number, date, txs, gas):
 
 def insert_new_daily_users(schain_name, date, users):
     _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
-    UserStats.insert_many(_users).on_conflict_ignore().execute()
+    for i in range(0, len(_users), 1000):
+        UserStats.insert_many(_users[i:i + 1000]).on_conflict_ignore().execute()
     daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
     day_users = UserStats.select().where(
         (UserStats.date == date) &
@@ -98,25 +99,87 @@ def get_daily_data(schain_name):
 
 
 def get_montly_data(schain_name):
+    tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
+    gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
+    blocks_total = fn.SUM(DailyStatsRecord.block_count_total)
+    users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
+    stats_query = (DailyStatsRecord
+                   .select(fn.strftime('%Y-%m', DailyStatsRecord.date),
+                           tx_total, gas_total, blocks_total)
+                   .where((DailyStatsRecord.schain_name == schain_name))
+                   .group_by(fn.strftime('%Y-%m', DailyStatsRecord.date))).dicts()
+    users_query = (UserStats
+                   .select(fn.strftime('%Y-%m', UserStats.date), users_total)
+                   .where((UserStats.schain_name == schain_name))
+                   .group_by(fn.strftime('%Y-%m', UserStats.date))).dicts()
+    stats_dict = {}
+    for item in stats_query:
+        date = item.pop('date')
+        stats_dict[date] = item
+    for item in users_query:
+        date = item.pop('date')
+        stats_dict[date].update(item)
+    return stats_dict
+
+
+def get_total_data(schain_name):
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total).alias('tx_count_total')
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used).alias('gas_total_used')
     blocks_total = fn.SUM(DailyStatsRecord.block_count_total).alias('block_count_total')
     users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
     query = (DailyStatsRecord
-             .select(fn.strftime('%Y-%m', DailyStatsRecord.date),
-                     tx_total, gas_total, blocks_total)
-             .where((DailyStatsRecord.schain_name == schain_name))
-             .group_by(fn.strftime('%Y-%m', DailyStatsRecord.date))).dicts()
+             .select(tx_total, gas_total, blocks_total)
+             .where((DailyStatsRecord.schain_name == schain_name))).dicts()
     query_b = (UserStats
-               .select(fn.strftime('%Y-%m', UserStats.date),
-                     users_total)
-               .where((UserStats.schain_name == schain_name))
-               .group_by(fn.strftime('%Y-%m', UserStats.date))).dicts()
-    for i in query:
+               .select(users_total)
+               .where((UserStats.schain_name == schain_name))).dicts()
+    stats_dict = {}
+    for item in query:
+        stats_dict.update(item)
+    for item in query_b:
+        stats_dict.update(item)
+    return stats_dict
+
+
+def merge_bases(db_path):
+    merged_db = SqliteDatabase(db_path)
+    DailyStatsRecord._meta.database = merged_db
+    UserStats._meta.database = merged_db
+    PulledBlocks._meta.database = merged_db
+    merged_db.connect()
+    d = DailyStatsRecord.select().dicts()
+    u = UserStats.select().dicts()
+    b = PulledBlocks.select().dicts()
+
+    users_data = []
+    stats_data = []
+    blocks_data = []
+    for user in u:
+        user.pop('id')
+        users_data.append(user)
+    for day in d:
+        day.pop('id')
+        stats_data.append(day)
+    for block in b:
+        block.pop('id')
+        blocks_data.append(block)
+
+    db = SqliteDatabase(DB_FILE_PATH)
+    DailyStatsRecord._meta.database = db
+    UserStats._meta.database = db
+    PulledBlocks._meta.database = db
+    db.connect()
+
+    logger.info('Merge users')
+    for i in range(0, len(users_data), 10000):
+        UserStats.insert_many(users_data[i:i + 10000]).execute()
         print(i)
-    for b in query_b:
-        print(b)
-    return
+    logger.info('Merge stats')
+    for i in range(0, len(stats_data), 10000):
+        DailyStatsRecord.insert_many(stats_data[i:i + 10000]).execute()
+    logger.info('Merge blocks')
+    for i in range(0, len(blocks_data), 10000):
+        PulledBlocks.insert_many(blocks_data[i:i + 10000]).execute()
 
 
 def create_tables():
