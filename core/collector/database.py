@@ -98,6 +98,13 @@ def get_daily_data(schain_name):
     return DailyStatsRecord.select().where(DailyStatsRecord.schain_name == schain_name).dicts()
 
 
+def get_schain_stats(schain_name):
+    return {
+        'group_by_month': get_montly_data(schain_name),
+        'total': get_total_data(schain_name)
+    }
+
+
 def get_montly_data(schain_name):
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
