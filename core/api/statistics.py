@@ -13,7 +13,7 @@ def get_latest_stats():
 
 def convert_to_legacy(data):
     converted_data = {
-        'block_count_total': data['summary']['block_count_total'],
+        'block_count_total': data['total']['block_count_total'],
         "block_count_30_days": 0,
         "block_count_7_days": 0,
         "gas_fees_total_30_days_eth": 0,
@@ -32,13 +32,13 @@ def convert_to_legacy(data):
         'max_tps_last_30_days': 0,
         "tx_count_30_days": 0,
         "tx_count_7_days": 0,
-        "tx_count_total": data['summary']['tx_count_total'],
+        "tx_count_total": data['total']['tx_count_total'],
         "unique_tx_count_30_days": 0,
         "unique_tx_count_7_days": 0,
-        "unique_tx_count_total": data['summary']['tx_count_total'],
+        "unique_tx_count_total": data['total']['tx_count_total'],
         "user_count_30_days": 0,
         "user_count_7_days": 0,
-        "user_count_total": data['summary']['users_count_total']
+        "user_count_total": data['total']['users_count_total']
     }
     group_by_month = []
     for month in data['group_by_month']:

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 
 from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField, fn)
 from core import DB_FILE_PATH
@@ -101,7 +102,9 @@ def get_daily_data(schain_name):
 def get_schain_stats(schain_name):
     return {
         'group_by_month': get_montly_data(schain_name),
-        'total': get_total_data(schain_name)
+        'total': get_total_data(schain_name),
+        'total_7d': get_total_data(schain_name, days_before=7),
+        'total_30d': get_total_data(schain_name, days_before=30)
     }
 
 
@@ -129,17 +132,24 @@ def get_montly_data(schain_name):
     return stats_dict
 
 
-def get_total_data(schain_name):
-    tx_total = fn.SUM(DailyStatsRecord.tx_count_total).alias('tx_count_total')
-    gas_total = fn.SUM(DailyStatsRecord.gas_total_used).alias('gas_total_used')
-    blocks_total = fn.SUM(DailyStatsRecord.block_count_total).alias('block_count_total')
+def get_total_data(schain_name, days_before=None):
+    tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
+    gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
+    blocks_total = fn.SUM(DailyStatsRecord.block_count_total)
     users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
-    query = (DailyStatsRecord
-             .select(tx_total, gas_total, blocks_total)
-             .where((DailyStatsRecord.schain_name == schain_name))).dicts()
-    query_b = (UserStats
-               .select(users_total)
-               .where((UserStats.schain_name == schain_name))).dicts()
+    condition_a = DailyStatsRecord.schain_name == schain_name
+    condition_b = UserStats.schain_name == schain_name
+    if days_before:
+        condition_a = condition_a & (DailyStatsRecord.date.between(
+                        datetime.now().today() - timedelta(days=days_before),
+                        datetime.now().today()
+                    ))
+        condition_b = condition_b & (UserStats.date.between(
+                        datetime.now().today() - timedelta(days=days_before),
+                        datetime.now().today()
+                    ))
+    query = DailyStatsRecord.select(tx_total, gas_total, blocks_total).where(condition_a).dicts()
+    query_b = UserStats.select(users_total).where(condition_b).dicts()
     stats_dict = {}
     for item in query:
         stats_dict.update(item)
