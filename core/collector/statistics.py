@@ -7,9 +7,10 @@ import requests as requests
 from web3 import Web3, HTTPProvider
 
 from core import ETH_API_KEY
-from core.collector.database import (get_daily_data, update_daily_prices,
-                                     insert_new_block_data, insert_new_daily_users, get_montly_data, get_total_data)
-from core.utils.meta import get_schain_endpoint, get_meta_file, update_meta_file
+from core.collector.database import (update_daily_prices, insert_new_block_data,
+                                     insert_new_daily_users, refetch_daily_price_stats)
+from core.utils.meta import (get_schain_endpoint, update_last_block, get_last_block,
+                             get_last_price_date, update_last_price_date)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -20,7 +21,7 @@ class Collector:
         self.schain_name = schain_name
         self.endpoint = get_schain_endpoint(schain_name)
         self.web3 = Web3(HTTPProvider(self.endpoint))
-        self.last_block = from_block if from_block else self.get_last_block()
+        self.last_block = from_block if from_block else get_last_block(self.schain_name)
         self.to_block = to_block
         self.stats = {}
 
@@ -43,12 +44,12 @@ class Collector:
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as e:
             results = []
             futures = [e.submit(self.download, block_num) for block_num in
-                   range(first_batch_block, last_batch_block)]
+                       range(first_batch_block, last_batch_block)]
             for thread in concurrent.futures.as_completed(futures):
                 results.append(thread.result())
         logger.info(f'Writing {len(results)} blocks to DB')
         self.insert_block_batch(results)
-        self.update_last_block(last_batch_block)
+        update_last_block(self.schain_name, last_batch_block)
 
     def download(self, block_number):
         return self.web3.eth.get_block(block_number, True)
@@ -64,23 +65,26 @@ class Collector:
             if len(users_daily[date]) > 0:
                 insert_new_daily_users(self.schain_name, date, users_daily[date])
 
-    def update_last_block(self, last_block):
-        meta = get_meta_file()
-        meta[self.schain_name]['last_updated_block'] = last_block
-        update_meta_file(meta)
-
-    def get_last_block(self):
-        return get_meta_file()[self.schain_name].get('last_updated_block', 0)
-
-    def get_daily_stats(self):
-        return {
-            'group_by_month': get_montly_data(self.schain_name),
-            'total': get_total_data(self.schain_name)
-        }
-
 
 class PricesCollector:
-    ETH_API_URL='https://api.etherscan.io/api'
+    ETH_API_URL = 'https://api.etherscan.io/api'
+
+    def __init__(self):
+        self.last_updated = get_last_price_date()
+
+    def update_gas_saved_stats(self, schain_names):
+        current_date = datetime.today().date()
+        if str(current_date) == self.last_updated:
+            return
+        logger.info(f'Fetching gas prices from {self.last_updated} to {current_date}')
+        new_prices_fetched = self.fetch_daily_prices(self.last_updated, current_date)
+        if new_prices_fetched:
+            for name in schain_names:
+                refetch_daily_price_stats(name)
+                logger.info(f'Gas saved stats updated for {name}')
+            update_last_price_date(str(current_date))
+        else:
+            logger.warning(f'Gas saved stats not updated')
 
     def fetch_daily_prices(self, start_date, end_date):
         _gas_prices = self.get_gas_prices(start_date, end_date)
@@ -92,7 +96,11 @@ class PricesCollector:
         keys = _eth_prices.keys()
         values = zip(_eth_prices.values(), _gas_prices.values())
         data = dict(zip(keys, values))
-        update_daily_prices(data)
+        if data:
+            update_daily_prices(data)
+            logger.info(f'New prices were added to db')
+            return True
+        return False
 
     @staticmethod
     def get_gas_prices(start_date, end_date):

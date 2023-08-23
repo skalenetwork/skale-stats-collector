@@ -5,7 +5,7 @@ from datetime import datetime
 from core import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
 from core.collector.database import create_tables, get_schain_stats
 from core.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
-from core.collector.statistics import Collector
+from core.collector.statistics import Collector, PricesCollector
 from core.utils.helper import daemon, write_json
 from core.utils.logger import init_logger
 from core.utils.meta import create_meta_file, get_meta_file, update_meta_file
@@ -49,7 +49,8 @@ def aggregate_schain_stats(names):
 @daemon(delay=600)
 def update_statistics():
     refresh_meta()
-    names = get_meta_file().keys()
+    names = get_all_names()
+    PricesCollector().update_gas_saved_stats(names)
     for name in names:
         logger.info(f'Start catchup for {name}')
         collector = Collector(name)
@@ -66,7 +67,7 @@ def refresh_meta():
     for name in names:
         if name not in meta.keys() and is_dkg_passed(name):
             endpoint = get_schain_endpoint(name)
-            meta[name] = {
+            meta['schains'][name] = {
                 'endpoint': endpoint
             }
     update_meta_file(meta)

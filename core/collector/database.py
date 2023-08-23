@@ -74,8 +74,6 @@ def insert_new_daily_users(schain_name, date, users):
 def update_daily_prices(prices):
     _prices = [{'date': k, 'eth_price': prices[k][0], 'gas_price': prices[k][1]} for k in prices]
     DailyPrices.insert_many(_prices).on_conflict_ignore().execute()
-    for i in DailyPrices.select().dicts():
-        logger.info(i)
 
 
 def refetch_daily_price_stats(schain_name):
@@ -85,9 +83,8 @@ def refetch_daily_price_stats(schain_name):
         (DailyStatsRecord.gas_total_used != 0)
     )
     for day in unfetched_days:
-        logger.info(day.date)
+        logger.debug(f'Updating {schain_name} gas fees saved for {day}')
         prices = DailyPrices.select().where(DailyPrices.date == day.date).get_or_none()
-        logger.info(prices)
         if prices:
             day.gas_fees_total_gwei = day.gas_total_used * prices.gas_price / 10 ** 9
             day.gas_fees_total_eth = day.gas_total_used * prices.gas_price / 10 ** 18
