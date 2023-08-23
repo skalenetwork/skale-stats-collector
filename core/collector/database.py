@@ -108,11 +108,15 @@ def get_schain_stats(schain_name):
 def get_montly_data(schain_name):
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
+    gas_fees_total_gwei = fn.SUM(DailyStatsRecord.gas_fees_total_gwei)
+    gas_fees_total_eth = fn.SUM(DailyStatsRecord.gas_fees_total_eth)
+    gas_fees_total_usd = fn.SUM(DailyStatsRecord.gas_fees_total_usd)
     blocks_total = fn.SUM(DailyStatsRecord.block_count_total)
     users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
     stats_query = (DailyStatsRecord
                    .select(fn.strftime('%Y-%m', DailyStatsRecord.date),
-                           tx_total, gas_total, blocks_total)
+                           tx_total, gas_total, gas_fees_total_gwei,
+                           gas_fees_total_eth, gas_fees_total_usd, blocks_total)
                    .where((DailyStatsRecord.schain_name == schain_name))
                    .group_by(fn.strftime('%Y-%m', DailyStatsRecord.date))).dicts()
     users_query = (UserStats
@@ -132,6 +136,9 @@ def get_montly_data(schain_name):
 def get_total_data(schain_name, days_before=None):
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
+    gas_fees_total_gwei = fn.SUM(DailyStatsRecord.gas_fees_total_gwei)
+    gas_fees_total_eth = fn.SUM(DailyStatsRecord.gas_fees_total_eth)
+    gas_fees_total_usd = fn.SUM(DailyStatsRecord.gas_fees_total_usd)
     blocks_total = fn.SUM(DailyStatsRecord.block_count_total)
     users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
     condition_a = DailyStatsRecord.schain_name == schain_name
@@ -145,7 +152,9 @@ def get_total_data(schain_name, days_before=None):
                         datetime.now().today() - timedelta(days=days_before),
                         datetime.now().today()
                     ))
-    query = DailyStatsRecord.select(tx_total, gas_total, blocks_total).where(condition_a).dicts()
+    query = DailyStatsRecord.select(tx_total, gas_total, gas_fees_total_gwei,
+                                    gas_fees_total_eth, gas_fees_total_usd,
+                                    blocks_total).where(condition_a).dicts()
     query_b = UserStats.select(users_total).where(condition_b).dicts()
     stats_dict = {}
     for item in query:

@@ -65,7 +65,7 @@ def refresh_meta():
     names = get_all_names()
     meta = get_meta_file()
     for name in names:
-        if name not in meta.keys() and is_dkg_passed(name):
+        if name not in meta['schains'].keys() and is_dkg_passed(name):
             endpoint = get_schain_endpoint(name)
             meta['schains'][name] = {
                 'endpoint': endpoint

@@ -3,7 +3,7 @@ import logging
 from flask import Flask, request
 
 from core import FLASK_APP_PORT, FLASK_APP_HOST
-from core.api.statistics import get_latest_stats
+from core.api.statistics import get_latest_stats, get_latest_schain_stats
 from core.utils.logger import init_logger
 from core.utils.web import construct_ok_response
 from flask_cors import CORS, cross_origin
@@ -26,7 +26,8 @@ def get_stats():
 @cross_origin(supports_credentials=True)
 def get_schain_stats(schain_name):
     logger.debug(request)
-    return construct_ok_response(None, pretty=True)
+    data = get_latest_schain_stats(schain_name)
+    return construct_ok_response(data, pretty=True)
 
 
 def main():
