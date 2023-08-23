@@ -28,6 +28,8 @@ def aggregate_schain_stats(names):
         'schains_number': len(names),
         'summary': {
             'total': {},
+            'total_7d': {},
+            'total_30d': {},
             'group_by_month': {}
         }
     }
@@ -37,6 +39,8 @@ def aggregate_schain_stats(names):
             name: schain_data
         })
         update_dict(stats['summary']['total'], schain_data['total'])
+        update_dict(stats['summary']['total_7d'], schain_data['total_7d'])
+        update_dict(stats['summary']['total_30d'], schain_data['total_30d'])
         update_dict(stats['summary']['group_by_month'], schain_data['group_by_month'])
     stats['inserted_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
     return stats
