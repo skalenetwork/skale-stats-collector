@@ -34,6 +34,7 @@ def aggregate_schain_stats(names):
         }
     }
     for name in names:
+        logger.info(f'Aggregating stats for {name}')
         schain_data = get_schain_stats(name)
         stats.update({
             name: schain_data

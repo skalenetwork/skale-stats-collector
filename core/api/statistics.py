@@ -2,28 +2,29 @@ from core import SNAPSHOT_FILE_PATH
 from core.utils.helper import read_json
 
 
-def get_latest_stats():
+def get_legacy_stats(schain_name=None):
     raw_data = read_json(SNAPSHOT_FILE_PATH)
-    result = {
-        'schains_number': raw_data['schains_number'],
-        'inserted_at': raw_data['inserted_at']
-    }
-    raw_data = raw_data.get('summary')
-    result.update(convert_to_legacy(raw_data))
-    return result
-
-
-def get_latest_schain_stats(schain_name):
-    raw_data = read_json(SNAPSHOT_FILE_PATH)
-    if not raw_data.get(schain_name):
+    data_to_convert = raw_data.get(schain_name) if schain_name else raw_data.get('summary')
+    if not data_to_convert:
         return {}
-    result = {
-        'schain_name': raw_data['schains_number'],
-        'inserted_at': raw_data['inserted_at']
+    if not schain_name:
+        return {
+            'schains_number': raw_data['schains_number'],
+            'inserted_at': raw_data['inserted_at'],
+            **convert_to_legacy(data_to_convert)
+        }
+    return {
+        'schain_name': raw_data['schain_name'],
+        'inserted_at': raw_data['inserted_at'],
+        **convert_to_legacy(data_to_convert)
     }
-    raw_data = raw_data.get(schain_name)
-    result.update(convert_to_legacy(raw_data))
-    return result
+
+
+def get_latest_stats(schain_name=None):
+    data = read_json(SNAPSHOT_FILE_PATH)
+    if schain_name:
+        return data.get(schain_name)
+    return data
 
 
 def convert_to_legacy(data):
@@ -69,5 +70,6 @@ def convert_to_legacy(data):
             "unique_tx": month_data['tx_count_total'],
             "user_count": month_data.get('users_count_total', 0)
         })
-    converted_data['group_by_month'] = group_by_month
+    converted_data['group_by_days'] = []
+    converted_data['group_by_months'] = group_by_month
     return converted_data

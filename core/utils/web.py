@@ -4,7 +4,7 @@ from flask import Response
 
 
 def construct_response(status, data, pretty=False):
-    response_data = json.dumps(data, indent=4, sort_keys=True) if pretty else json.dumps(data)
+    response_data = json.dumps(data, indent=4) if pretty else json.dumps(data)
     return Response(
         response=response_data,
         status=status,
