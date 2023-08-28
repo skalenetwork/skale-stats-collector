@@ -6,11 +6,11 @@ from datetime import datetime
 import requests as requests
 from web3 import Web3, HTTPProvider
 
-from core import ETH_API_KEY
-from core.collector.database import (update_daily_prices, insert_new_block_data,
-                                     insert_new_daily_users, refetch_daily_price_stats)
-from core.utils.meta import (get_schain_endpoint, update_last_block, get_last_block,
-                             get_last_price_date, update_last_price_date)
+from src import ETH_API_KEY
+from src.collector.db.database import (update_daily_prices, insert_new_block_data,
+                                       insert_new_daily_users, refetch_daily_price_stats)
+from src.utils.meta import (get_schain_endpoint, update_last_block, get_last_block,
+                            get_last_price_date, update_last_price_date)
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.ERROR)

@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField, fn)
-from core import DB_FILE_PATH
+from src import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)
 

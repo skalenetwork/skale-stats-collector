@@ -16,7 +16,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/skale-stats-collector/data
-    command: "python core/collector/main.py"
+    command: "python src/collector/main.py"
   stats-api:
     container_name: stats-collector-api
     image: "stats-collector-api:${TAG:-latest}"
@@ -34,4 +34,4 @@ services:
       - ./data:/skale-stats-collector/data
     ports:
       - "${FLASK_HOST_PORT}:${FLASK_APP_PORT}"
-    command: "python core/api/app.py"
+    command: "python src/api/app.py"

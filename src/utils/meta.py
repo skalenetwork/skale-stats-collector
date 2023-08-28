@@ -1,5 +1,5 @@
-from core import META_DATA_PATH
-from core.utils.helper import write_json, read_json
+from src import META_DATA_PATH
+from src.utils.helper import write_json, read_json
 
 
 def create_meta_file():

@@ -2,10 +2,10 @@ import logging
 
 from flask import Flask, request
 
-from core import FLASK_APP_PORT, FLASK_APP_HOST
-from core.api.statistics import get_latest_stats, get_legacy_stats
-from core.utils.logger import init_logger
-from core.utils.web import construct_ok_response
+from src import FLASK_APP_PORT, FLASK_APP_HOST
+from src.api.statistics import get_latest_stats, get_legacy_stats
+from src.utils.logger import init_logger
+from src.utils.web import construct_ok_response
 from flask_cors import CORS, cross_origin
 
 logger = logging.getLogger(__name__)

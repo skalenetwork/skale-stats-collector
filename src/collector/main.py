@@ -2,13 +2,13 @@ import logging
 import os
 from datetime import datetime
 
-from core import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
-from core.collector.database import create_tables, get_schain_stats
-from core.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
-from core.collector.statistics import Collector, PricesCollector
-from core.utils.helper import daemon, write_json
-from core.utils.logger import init_logger
-from core.utils.meta import create_meta_file, get_meta_file, update_meta_file
+from src import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
+from src.collector.db.database import create_tables, get_schain_stats
+from src.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
+from src.collector.fetchers.statistics import Collector, PricesCollector
+from src.utils.helper import daemon, write_json
+from src.utils.logger import init_logger
+from src.utils.meta import create_meta_file, get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
 

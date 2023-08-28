@@ -1,5 +1,5 @@
-from core import SNAPSHOT_FILE_PATH
-from core.utils.helper import read_json
+from src import SNAPSHOT_FILE_PATH
+from src.utils.helper import read_json
 
 
 def get_legacy_stats(schain_name=None):
