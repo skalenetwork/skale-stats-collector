@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 from src import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
-from src.collector.db.database import create_tables, get_schain_stats
+from src.collector.db.ops import create_tables, get_schain_stats
 from src.collector.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
 from src.collector.fetchers.statistics import Collector, PricesCollector
 from src.utils.helper import daemon, write_json
