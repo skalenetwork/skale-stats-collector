@@ -49,10 +49,6 @@ def refetch_daily_price_stats(schain_name):
             day.save()
 
 
-def get_daily_data(schain_name):
-    return DailyStatsRecord.select().where(DailyStatsRecord.schain_name == schain_name).dicts()
-
-
 def get_schain_stats(schain_name):
     return {
         'group_by_month': get_montly_data(schain_name),
