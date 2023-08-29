@@ -1,16 +1,16 @@
 import logging
 from datetime import datetime
-from src.collector.database.ops import get_montly_data, get_total_data
+from src.collector.database.ops import get_total_data
 
 logger = logging.getLogger(__name__)
 
 
 def get_schain_stats(schain_name):
     return {
-        'group_by_month': get_montly_data(schain_name),
         'total': get_total_data(schain_name),
         'total_7d': get_total_data(schain_name, days_before=7),
-        'total_30d': get_total_data(schain_name, days_before=30)
+        'total_30d': get_total_data(schain_name, days_before=30),
+        'group_by_month': get_total_data(schain_name, group_by_month=True)
     }
 
 

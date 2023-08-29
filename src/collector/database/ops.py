@@ -49,35 +49,7 @@ def refetch_daily_price_stats(schain_name):
             day.save()
 
 
-def get_montly_data(schain_name):
-    tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
-    gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
-    gas_fees_total_gwei = fn.SUM(DailyStatsRecord.gas_fees_total_gwei)
-    gas_fees_total_eth = fn.SUM(DailyStatsRecord.gas_fees_total_eth)
-    gas_fees_total_usd = fn.SUM(DailyStatsRecord.gas_fees_total_usd)
-    blocks_total = fn.SUM(DailyStatsRecord.block_count_total)
-    users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
-    stats_query = (DailyStatsRecord
-                   .select(fn.strftime('%Y-%m', DailyStatsRecord.date),
-                           tx_total, gas_total, gas_fees_total_gwei,
-                           gas_fees_total_eth, gas_fees_total_usd, blocks_total)
-                   .where((DailyStatsRecord.schain_name == schain_name))
-                   .group_by(fn.strftime('%Y-%m', DailyStatsRecord.date))).dicts()
-    users_query = (UserStats
-                   .select(fn.strftime('%Y-%m', UserStats.date), users_total)
-                   .where((UserStats.schain_name == schain_name))
-                   .group_by(fn.strftime('%Y-%m', UserStats.date))).dicts()
-    stats_dict = {}
-    for item in stats_query:
-        date = item.pop('date')
-        stats_dict[date] = item
-    for item in users_query:
-        date = item.pop('date')
-        stats_dict[date].update(item)
-    return stats_dict
-
-
-def get_total_data(schain_name, days_before=None):
+def get_total_data(schain_name, days_before=None, group_by_month=False):
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
     gas_fees_total_gwei = fn.SUM(DailyStatsRecord.gas_fees_total_gwei)
@@ -87,6 +59,8 @@ def get_total_data(schain_name, days_before=None):
     users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
     condition_a = DailyStatsRecord.schain_name == schain_name
     condition_b = UserStats.schain_name == schain_name
+    stats_month = fn.strftime('%Y-%m', DailyStatsRecord.date)
+    users_month = fn.strftime('%Y-%m', UserStats.date)
     if days_before:
         condition_a = condition_a & (DailyStatsRecord.date.between(
                         datetime.now().today() - timedelta(days=days_before),
@@ -96,15 +70,35 @@ def get_total_data(schain_name, days_before=None):
                         datetime.now().today() - timedelta(days=days_before),
                         datetime.now().today()
                     ))
-    query = DailyStatsRecord.select(tx_total, gas_total, gas_fees_total_gwei,
-                                    gas_fees_total_eth, gas_fees_total_usd,
-                                    blocks_total).where(condition_a).dicts()
-    query_b = UserStats.select(users_total).where(condition_b).dicts()
+
+    stats_fields = [tx_total, gas_total, gas_fees_total_gwei, gas_fees_total_eth,
+                    gas_fees_total_usd, blocks_total]
+    users_fields = [users_total]
+    if group_by_month:
+        stats_fields.append(stats_month)
+        users_fields.append(users_month)
+        query = DailyStatsRecord.select(*stats_fields).where(condition_a).group_by(stats_month)
+        query_b = UserStats.select(*users_fields).where(condition_b).group_by(users_month)
+    else:
+        query = DailyStatsRecord.select(*stats_fields).where(condition_a)
+        query_b = UserStats.select(*users_fields).where(condition_b)
+
+    query = query.dicts()
+    query_b = query_b.dicts()
+
     stats_dict = {}
     for item in query:
-        stats_dict.update(item)
+        if group_by_month:
+            date = item.pop('date')
+            stats_dict[date] = item
+        else:
+            stats_dict.update(item)
     for item in query_b:
-        stats_dict.update(item)
+        if group_by_month:
+            date = item.pop('date')
+            stats_dict[date].update(item)
+        else:
+            stats_dict.update(item)
     return stats_dict
 
 
