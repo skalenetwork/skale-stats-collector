@@ -49,15 +49,6 @@ def refetch_daily_price_stats(schain_name):
             day.save()
 
 
-def get_schain_stats(schain_name):
-    return {
-        'group_by_month': get_montly_data(schain_name),
-        'total': get_total_data(schain_name),
-        'total_7d': get_total_data(schain_name, days_before=7),
-        'total_30d': get_total_data(schain_name, days_before=30)
-    }
-
-
 def get_montly_data(schain_name):
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
