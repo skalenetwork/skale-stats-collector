@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from peewee import fn
-from src.collector.db.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
+from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
 
 logger = logging.getLogger(__name__)
 

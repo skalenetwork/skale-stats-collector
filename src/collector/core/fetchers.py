@@ -7,8 +7,8 @@ import requests as requests
 from web3 import Web3, HTTPProvider
 
 from src import ETH_API_KEY
-from src.collector.db.ops import (update_daily_prices, insert_new_block_data,
-                                  insert_new_daily_users, refetch_daily_price_stats)
+from src.collector.database.ops import (update_daily_prices, insert_new_block_data,
+                                        insert_new_daily_users, refetch_daily_price_stats)
 from src.utils.meta import (get_schain_endpoint, update_last_block, get_last_block,
                             get_last_price_date, update_last_price_date)
 
