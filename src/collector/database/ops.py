@@ -57,49 +57,43 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
     gas_fees_total_usd = fn.SUM(DailyStatsRecord.gas_fees_total_usd)
     blocks_total = fn.SUM(DailyStatsRecord.block_count_total)
     users_total = fn.COUNT(UserStats.address.distinct()).alias('users_count_total')
-    condition_a = DailyStatsRecord.schain_name == schain_name
-    condition_b = UserStats.schain_name == schain_name
-    stats_month = fn.strftime('%Y-%m', DailyStatsRecord.date)
-    users_month = fn.strftime('%Y-%m', UserStats.date)
-    if days_before:
-        condition_a = condition_a & (DailyStatsRecord.date.between(
-                        datetime.now().today() - timedelta(days=days_before),
-                        datetime.now().today()
-                    ))
-        condition_b = condition_b & (UserStats.date.between(
-                        datetime.now().today() - timedelta(days=days_before),
-                        datetime.now().today()
-                    ))
 
-    stats_fields = [tx_total, gas_total, gas_fees_total_gwei, gas_fees_total_eth,
-                    gas_fees_total_usd, blocks_total]
-    users_fields = [users_total]
+    metrics_stats = run_stats_query(schain_name, DailyStatsRecord,
+                                    [tx_total, blocks_total, gas_total, gas_fees_total_gwei,
+                                     gas_fees_total_eth, gas_fees_total_usd],
+                                    days_before, group_by_month)
+    users_stats = run_stats_query(schain_name, UserStats, [users_total],
+                                  days_before, group_by_month)
     if group_by_month:
-        stats_fields.append(stats_month)
-        users_fields.append(users_month)
-        query = DailyStatsRecord.select(*stats_fields).where(condition_a).group_by(stats_month)
-        query_b = UserStats.select(*users_fields).where(condition_b).group_by(users_month)
+        for date in users_stats:
+            metrics_stats[date].update(users_stats[date])
     else:
-        query = DailyStatsRecord.select(*stats_fields).where(condition_a)
-        query_b = UserStats.select(*users_fields).where(condition_b)
+        metrics_stats.update(users_stats)
+    return metrics_stats
 
-    query = query.dicts()
-    query_b = query_b.dicts()
 
-    stats_dict = {}
-    for item in query:
-        if group_by_month:
-            date = item.pop('date')
-            stats_dict[date] = item
-        else:
-            stats_dict.update(item)
-    for item in query_b:
-        if group_by_month:
-            date = item.pop('date')
-            stats_dict[date].update(item)
-        else:
-            stats_dict.update(item)
-    return stats_dict
+def run_stats_query(schain_name, model, stats_fields, days_before=None,
+                        group_by_month=False):
+    condition = model.schain_name == schain_name
+    if days_before:
+        condition = condition & (model.date.between(
+            datetime.now().today() - timedelta(days=days_before),
+            datetime.now().today()
+        ))
+    if group_by_month:
+        stats_month = fn.strftime('%Y-%m', model.date)
+        stats_fields.append(stats_month)
+        query = model.select(*stats_fields).where(condition).group_by(stats_month)
+    else:
+        query = model.select(*stats_fields).where(condition)
+    raw_result = query.dicts()
+    if not group_by_month:
+        return raw_result.get()
+    result_dict = {}
+    for item in raw_result:
+        date = item.pop('date')
+        result_dict[date] = item
+    return result_dict
 
 
 def create_tables():
