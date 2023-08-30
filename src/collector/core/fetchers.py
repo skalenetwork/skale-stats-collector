@@ -58,9 +58,11 @@ class Collector:
         users_daily = {}
         for block in batch:
             date = str(datetime.fromtimestamp(block['timestamp']).date())
-            users_daily[date] = users_daily.get(date, []) + [tx['from'] for tx in block['transactions']]
+            users_daily[date] = (users_daily.get(date, []) +
+                                 [tx['from'] for tx in block['transactions']])
             gas = block['gasUsed']
-            insert_new_block_data(self.schain_name, block['number'], date, len(block['transactions']), gas)
+            insert_new_block_data(self.schain_name, block['number'], date,
+                                  len(block['transactions']), gas)
         for date in users_daily:
             if len(users_daily[date]) > 0:
                 insert_new_daily_users(self.schain_name, date, users_daily[date])
@@ -84,7 +86,7 @@ class PricesCollector:
                 logger.info(f'Gas saved stats updated for {name}')
             update_last_price_date(str(current_date))
         else:
-            logger.warning(f'Gas saved stats not updated')
+            logger.warning('Gas saved stats not updated')
 
     def fetch_daily_prices(self, start_date, end_date):
         _gas_prices = self.get_gas_prices(start_date, end_date)
@@ -98,7 +100,7 @@ class PricesCollector:
         data = dict(zip(keys, values))
         if data:
             update_daily_prices(data)
-            logger.info(f'New prices were added to db')
+            logger.info('New prices were added to db')
             return True
         return False
 

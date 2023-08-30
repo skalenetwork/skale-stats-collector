@@ -1,6 +1,7 @@
 import logging
 
-from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField, DateField, CharField, fn)
+from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField,
+                    DateField, CharField)
 from src import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)

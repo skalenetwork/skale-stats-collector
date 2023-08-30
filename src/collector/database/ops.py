@@ -73,7 +73,7 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
 
 
 def run_stats_query(schain_name, model, stats_fields, days_before=None,
-                        group_by_month=False):
+                    group_by_month=False):
     condition = model.schain_name == schain_name
     if days_before:
         condition = condition & (model.date.between(
