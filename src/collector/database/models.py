@@ -18,6 +18,11 @@ class PulledBlocks(BaseModel):
     schain_name = CharField()
     block_number = IntegerField()
 
+    class Meta:
+        indexes = (
+            (('schain_name', 'block_number'), True),
+        )
+
 
 class DailyPrices(BaseModel):
     date = DateField(unique=True)

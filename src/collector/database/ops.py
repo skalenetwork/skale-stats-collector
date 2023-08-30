@@ -1,19 +1,22 @@
 import logging
 from datetime import datetime, timedelta
 
-from peewee import fn
-from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
+from peewee import fn, IntegrityError
+from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices, BaseModel)
 
 logger = logging.getLogger(__name__)
 
 
 def insert_new_block_data(schain_name, number, date, txs, gas):
-    daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
-    daily_record.block_count_total += 1
-    daily_record.tx_count_total += txs
-    daily_record.gas_total_used += gas
-    daily_record.save()
-    PulledBlocks.create(schain_name=schain_name, block_number=number).save()
+    try:
+        PulledBlocks.create(schain_name=schain_name, block_number=number).save()
+        daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
+        daily_record.block_count_total += 1
+        daily_record.tx_count_total += txs
+        daily_record.gas_total_used += gas
+        daily_record.save()
+    except IntegrityError:
+        logger.warning(f'Could not write block {number} for {schain_name}')
 
 
 def insert_new_daily_users(schain_name, date, users):
