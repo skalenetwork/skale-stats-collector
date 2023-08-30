@@ -7,8 +7,8 @@ import requests as requests
 from web3 import Web3, HTTPProvider
 
 from src import ETH_API_KEY
-from src.collector.database.ops import (update_daily_prices, insert_new_block_data,
-                                        insert_new_daily_users, refetch_daily_price_stats)
+from src.collector.database.ops import (insert_new_daily_prices, insert_new_block_data,
+                                        insert_new_daily_users, update_daily_price_stats)
 from src.utils.meta import (get_schain_endpoint, update_last_block, get_last_block,
                             get_last_price_date, update_last_price_date)
 
@@ -82,7 +82,7 @@ class PricesCollector:
         new_prices_fetched = self.fetch_daily_prices(self.last_updated, current_date)
         if new_prices_fetched:
             for name in schain_names:
-                refetch_daily_price_stats(name)
+                update_daily_price_stats(name)
                 logger.info(f'Gas saved stats updated for {name}')
             update_last_price_date(str(current_date))
         else:
@@ -99,7 +99,7 @@ class PricesCollector:
         values = zip(_eth_prices.values(), _gas_prices.values())
         data = dict(zip(keys, values))
         if data:
-            update_daily_prices(data)
+            insert_new_daily_prices(data)
             logger.info('New prices were added to db')
             return True
         return False

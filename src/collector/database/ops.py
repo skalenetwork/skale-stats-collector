@@ -28,12 +28,12 @@ def insert_new_daily_users(schain_name, date, users):
     daily_record.save()
 
 
-def update_daily_prices(prices):
+def insert_new_daily_prices(prices):
     _prices = [{'date': k, 'eth_price': prices[k][0], 'gas_price': prices[k][1]} for k in prices]
     DailyPrices.insert_many(_prices).on_conflict_ignore().execute()
 
 
-def refetch_daily_price_stats(schain_name):
+def update_daily_price_stats(schain_name):
     unfetched_days = DailyStatsRecord.select().where(
         (DailyStatsRecord.schain_name == schain_name) &
         (DailyStatsRecord.gas_fees_total_gwei == 0) &
