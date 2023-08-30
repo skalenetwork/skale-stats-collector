@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 def update_statistics():
     refresh_meta()
     names = get_all_names()
-    PricesCollector().update_gas_saved_stats(names)
     for name in names:
         logger.info(f'Start catchup for {name}')
         collector = Collector(name)
         collector.catchup_blocks()
+    PricesCollector().update_gas_saved_stats(names)
     logger.info('Aggregating schain stats...')
     snapshot_data = aggregate_schain_stats(names)
     write_json(SNAPSHOT_FILE_PATH, snapshot_data)
