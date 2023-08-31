@@ -75,7 +75,7 @@ class PricesCollector:
         self.last_updated = get_last_price_date()
 
     def update_gas_saved_stats(self, schain_names):
-        current_date = datetime.today().date()
+        current_date = datetime.utcnow().date()
         if str(current_date) == self.last_updated:
             return
         logger.info(f'Fetching gas prices from {self.last_updated} to {current_date}')

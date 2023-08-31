@@ -80,8 +80,8 @@ def run_stats_query(schain_name, model, stats_fields, days_before=None,
     condition = model.schain_name == schain_name
     if days_before:
         condition = condition & (model.date.between(
-            datetime.now().today() - timedelta(days=days_before),
-            datetime.now().today()
+            datetime.utcnow().today() - timedelta(days=days_before),
+            datetime.utcnow().today()
         ))
     if group_by_month:
         stats_month = fn.strftime('%Y-%m', model.date)
