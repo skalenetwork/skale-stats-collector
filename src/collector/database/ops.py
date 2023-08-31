@@ -75,6 +75,10 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
     return metrics_stats
 
 
+def count_pulled_blocks(schain_name):
+    return PulledBlocks.select().where(PulledBlocks.schain_name == schain_name).count()
+
+
 def run_stats_query(schain_name, model, stats_fields, days_before=None,
                     group_by_month=False):
     condition = model.schain_name == schain_name

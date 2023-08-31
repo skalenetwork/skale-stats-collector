@@ -16,6 +16,16 @@ def write_json(path, content):
         json.dump(content, outfile, indent=4)
 
 
+def update_dict(target_dict, chain_dict):
+    for key in chain_dict:
+        if type(chain_dict[key]) is dict:
+            if target_dict.get(key) is None:
+                target_dict[key] = {}
+            update_dict(target_dict[key], chain_dict[key])
+        else:
+            target_dict[key] = target_dict.get(key, 0) + chain_dict[key]
+
+
 def daemon(delay=60):
     def actual_decorator(func):
         @wraps(func)
@@ -25,7 +35,7 @@ def daemon(delay=60):
                 try:
                     func(*args, **kwargs)
                 except Exception as e:
-                    logger.warning(f'{func.__name__} failed with: {e}')
+                    logger.exception(f'{e}')
                     logger.warning(f'Restarting {func.__name__}...')
                 sleep(delay)
         return wrapper
