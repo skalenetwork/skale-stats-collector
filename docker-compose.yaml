@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     network_mode: host
     environment:
-      ETH_ENDPOINT: ${ENDPOINT}
+      ETH_ENDPOINT: ${ETH_ENDPOINT}
       PROXY_DOMAIN: ${PROXY_DOMAIN}
       ETH_API_KEY: ${ETH_API_KEY}
       SCHAIN_NAMES: ${SCHAIN_NAMES}

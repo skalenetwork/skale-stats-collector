@@ -95,7 +95,11 @@ def run_stats_query(schain_name, model, stats_fields, days_before=None,
         query = model.select(*stats_fields).where(condition)
     raw_result = query.dicts()
     if not group_by_month:
-        return raw_result.get()
+        result = raw_result.get()
+        for field in result:
+            if not result[field]:
+                result[field] = 0
+        return result
     result_dict = {}
     for item in raw_result:
         date = item.pop('date')

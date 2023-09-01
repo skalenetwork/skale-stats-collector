@@ -2,7 +2,7 @@
 
 set -e
 
-: "${ENDPOINT?Need to set ENDPOINT}"
+: "${ETH_ENDPOINT?Need to set ETH_ENDPOINT}"
 : "${PROXY_DOMAIN?Need to set PROXY_DOMAIN}"
 
 export FLASK_APP_HOST=0.0.0.0

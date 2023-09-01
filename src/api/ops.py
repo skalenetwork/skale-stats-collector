@@ -4,7 +4,10 @@ from src.utils.helper import read_json
 
 def get_legacy_stats(schain_name=None):
     raw_data = read_json(SNAPSHOT_FILE_PATH)
-    data_to_convert = raw_data.get(schain_name) if schain_name else raw_data.get('summary')
+    if schain_name:
+        data_to_convert = raw_data['schains'].get(schain_name)
+    else:
+        data_to_convert = raw_data['summary']
     if not data_to_convert:
         return {}
     if not schain_name:
@@ -14,7 +17,7 @@ def get_legacy_stats(schain_name=None):
             **convert_to_legacy(data_to_convert)
         }
     return {
-        'schain_name': raw_data['schain_name'],
+        'schain_name': schain_name,
         'inserted_at': raw_data['inserted_at'],
         **convert_to_legacy(data_to_convert)
     }
@@ -23,7 +26,12 @@ def get_legacy_stats(schain_name=None):
 def get_latest_stats(schain_name=None):
     data = read_json(SNAPSHOT_FILE_PATH)
     if schain_name:
-        return data.get(schain_name)
+        data_to_return = data['schains'].get(schain_name)
+        data_to_return.update({
+            'schain_name': schain_name,
+            'inserted_at': data['inserted_at']
+        })
+        return data_to_return
     return data
 
 
