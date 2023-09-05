@@ -5,6 +5,7 @@ from peewee import fn, IntegrityError
 from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
 
 logger = logging.getLogger(__name__)
+MAX_ROWS_TO_INSERT = 1000
 
 
 def insert_new_block_data(schain_name, number, date, txs, gas):
@@ -21,8 +22,8 @@ def insert_new_block_data(schain_name, number, date, txs, gas):
 
 def insert_new_daily_users(schain_name, date, users):
     _users = [{'address': user, 'date': date, 'schain_name': schain_name} for user in users]
-    for i in range(0, len(_users), 1000):
-        UserStats.insert_many(_users[i:i + 1000]).on_conflict_ignore().execute()
+    for i in range(0, len(_users), MAX_ROWS_TO_INSERT):
+        UserStats.insert_many(_users[i:i + MAX_ROWS_TO_INSERT]).on_conflict_ignore().execute()
     daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
     day_users = UserStats.select().where(
         (UserStats.date == date) &

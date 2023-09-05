@@ -17,6 +17,8 @@ logging.getLogger("urllib3").setLevel(logging.ERROR)
 
 
 class Collector:
+    BLOCKS_BATCH_SIZE = 1000
+
     def __init__(self, schain_name, from_block=None, to_block=None):
         self.schain_name = schain_name
         self.endpoint = get_schain_endpoint(schain_name)
@@ -29,12 +31,12 @@ class Collector:
         try:
             latest_block = self.to_block if self.to_block else self.web3.eth.get_block_number()
             first_batch_block = self.last_block
-            last_batch_block = min(first_batch_block + 1000, latest_block)
+            last_batch_block = min(first_batch_block + self.BLOCKS_BATCH_SIZE, latest_block)
             logger.info(f'Catching up blocks from {first_batch_block} to {latest_block}')
             while first_batch_block < latest_block:
                 self.catchup_batch_blocks(first_batch_block, last_batch_block)
                 first_batch_block = last_batch_block
-                last_batch_block = min(first_batch_block + 1000, latest_block)
+                last_batch_block = min(first_batch_block + self.BLOCKS_BATCH_SIZE, latest_block)
         except Exception as error:
             logger.info(error)
             pass
