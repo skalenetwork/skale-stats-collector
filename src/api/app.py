@@ -11,11 +11,11 @@ from flask_cors import CORS, cross_origin
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, support_credentials=True)
+CORS(app)
 
 
 @app.route("/v1/stats/")
-@cross_origin(supports_credentials=True)
+@cross_origin()
 def get_v1_stats():
     logger.debug(request)
     data = get_legacy_stats()
@@ -23,7 +23,7 @@ def get_v1_stats():
 
 
 @app.route("/v1/stats/<schain_name>")
-@cross_origin(supports_credentials=True)
+@cross_origin()
 def get_v1_schain_stats(schain_name):
     logger.debug(request)
     data = get_legacy_stats(schain_name)
@@ -31,7 +31,7 @@ def get_v1_schain_stats(schain_name):
 
 
 @app.route("/v2/stats/")
-@cross_origin(supports_credentials=True)
+@cross_origin()
 def get_v2_stats():
     logger.debug(request)
     data = get_latest_stats()
@@ -39,7 +39,7 @@ def get_v2_stats():
 
 
 @app.route("/v2/stats/<schain_name>")
-@cross_origin(supports_credentials=True)
+@cross_origin()
 def get_v2_schain_stats(schain_name):
     logger.debug(request)
     data = get_latest_stats(schain_name)
