@@ -3,7 +3,7 @@ import os
 
 from src import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
 from src.collector.core.statistics import aggregate_network_stats, verify_network_stats_data
-from src.collector.database.ops import create_tables, update_daily_price_stats
+from src.collector.database.ops import create_tables, update_daily_price_stats, last_pulled_block
 from src.collector.core.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
 from src.collector.core.fetchers import Collector, PricesCollector
 from src.utils.helper import daemon, write_json
@@ -37,8 +37,10 @@ def refresh_meta():
     for name in names:
         if name not in meta['schains'].keys() and is_dkg_passed(name):
             endpoint = get_schain_endpoint(name)
+            last_updated_block = last_pulled_block(name)
             meta['schains'][name] = {
-                'endpoint': endpoint
+                'endpoint': endpoint,
+                'last_updated_block': last_updated_block
             }
     update_meta_file(meta)
 

@@ -80,6 +80,14 @@ def count_pulled_blocks(schain_name):
     return PulledBlocks.select().where(PulledBlocks.schain_name == schain_name).count()
 
 
+def last_pulled_block(schain_name):
+    last_block = PulledBlocks.select(fn.MAX(PulledBlocks.block_number)).where(
+        PulledBlocks.schain_name == schain_name).scalar()
+    if not last_block:
+        return 0
+    return last_block
+
+
 def run_stats_query(schain_name, model, stats_fields, days_before=None,
                     group_by_month=False):
     condition = model.schain_name == schain_name
