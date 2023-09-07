@@ -19,6 +19,7 @@
 
 import json
 import logging
+import requests
 from functools import wraps
 from time import sleep
 
@@ -43,6 +44,15 @@ def update_dict(target_dict, chain_dict):
             update_dict(target_dict[key], chain_dict[key])
         else:
             target_dict[key] = target_dict.get(key, 0) + chain_dict[key]
+
+
+def download_via_url(url):
+    try:
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        data = json.loads(response.text)['result']
+        return data
+    except requests.RequestException as e:
+        logger.warning(f'Could not download prices: {e}')
 
 
 def daemon(delay=60):

@@ -49,9 +49,10 @@ def update_statistics():
     is_verified = verify_network_stats_data(network_stats)
     if is_verified:
         write_json(NETWORK_STATS_FILE_PATH, network_stats)
-        logger.info('Network stats updated')
+        logger.info('Network stats are updated')
         create_db_snapshot()
     else:
+        logger.warning('Network stats are invalid')
         reload_db_from_snapshot()
 
 

@@ -18,16 +18,14 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import concurrent
-import json
 import logging
 from datetime import datetime
-
-import requests as requests
 from web3 import Web3, HTTPProvider
 
 from src import ETH_API_KEY
 from src.collector.database.ops import (insert_new_daily_prices, insert_new_block_data,
                                         insert_new_daily_users, update_daily_price_stats)
+from src.utils.helper import download_via_url
 from src.utils.meta import (get_schain_endpoint, update_last_block, get_last_block,
                             get_last_price_date, update_last_price_date)
 
@@ -132,12 +130,7 @@ class PricesCollector:
               f'enddate={end_date}&' \
               f'sort=asc&' \
               f'apikey={ETH_API_KEY}'
-        try:
-            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-            data = json.loads(response.text)['result']
-            return data
-        except requests.RequestException as e:
-            logger.warning(f'Could not download gas_prices: {e}')
+        return download_via_url(url)
 
     @staticmethod
     def get_eth_prices(start_date, end_date):
@@ -146,9 +139,4 @@ class PricesCollector:
               f'enddate={end_date}&' \
               f'sort=asc&' \
               f'apikey={ETH_API_KEY}'
-        try:
-            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-            data = json.loads(response.text)['result']
-            return data
-        except requests.RequestException as e:
-            logger.warning(f'Could not download gas_prices: {e}')
+        return download_via_url(url)

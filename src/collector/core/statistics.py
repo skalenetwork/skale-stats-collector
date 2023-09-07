@@ -51,9 +51,7 @@ def verify_network_stats_data(stats):
         is_stats_valid = verify_schain_stats_data(schain_name, schains[schain_name])
         if not is_stats_valid:
             all_data_valid = False
-            logger.error(f'Stats data for {schain_name} is not valid')
-    if all_data_valid:
-        logger.info('Network stats is valid')
+            logger.error(f'Stats for {schain_name} are not valid')
     return all_data_valid
 
 
