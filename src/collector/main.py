@@ -20,9 +20,10 @@
 import logging
 import os
 
-from src import META_DATA_PATH, ABI_FILEPATH, SNAPSHOT_FILE_PATH
+from src import META_DATA_PATH, ABI_FILEPATH, NETWORK_STATS_FILE_PATH
 from src.collector.core.statistics import aggregate_network_stats, verify_network_stats_data
-from src.collector.database.ops import create_tables, update_daily_price_stats, last_pulled_block
+from src.collector.database.ops import create_tables, update_daily_price_stats, last_pulled_block, create_db_snapshot, \
+    reload_db_from_snapshot
 from src.collector.core.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
 from src.collector.core.fetchers import Collector, PricesCollector
 from src.utils.helper import daemon, write_json
@@ -45,9 +46,13 @@ def update_statistics():
     logger.info('Aggregating network stats...')
     network_stats = aggregate_network_stats(names)
     logger.info('Verifying network stats...')
-    write_json(SNAPSHOT_FILE_PATH, network_stats)
-    verify_network_stats_data(network_stats)
-    logger.info('Stats updated')
+    is_verified = verify_network_stats_data(network_stats)
+    if is_verified:
+        write_json(NETWORK_STATS_FILE_PATH, network_stats)
+        logger.info('Network stats updated')
+        create_db_snapshot()
+    else:
+        reload_db_from_snapshot()
 
 
 def refresh_meta():

@@ -18,9 +18,12 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import shutil
 from datetime import datetime, timedelta
 
 from peewee import fn, IntegrityError
+
+from src import DB_FILE_PATH, DB_DUMP_PATH, META_DATA_PATH, META_DUMP_PATH
 from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
 
 logger = logging.getLogger(__name__)
@@ -133,6 +136,18 @@ def run_stats_query(schain_name, model, stats_fields, days_before=None,
         date = item.pop('date')
         result_dict[date] = item
     return result_dict
+
+
+def create_db_snapshot():
+    logger.info('Creating snapshot')
+    shutil.copy(DB_FILE_PATH, DB_DUMP_PATH)
+    shutil.copy(META_DATA_PATH, META_DUMP_PATH)
+
+
+def reload_db_from_snapshot():
+    logger.info('Reloading base from snapshot')
+    shutil.copy(DB_DUMP_PATH, DB_FILE_PATH)
+    shutil.copy(META_DUMP_PATH, META_DATA_PATH)
 
 
 def create_tables():

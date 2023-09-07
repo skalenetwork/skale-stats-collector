@@ -17,12 +17,12 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from src import SNAPSHOT_FILE_PATH
+from src import NETWORK_STATS_FILE_PATH
 from src.utils.helper import read_json
 
 
 def get_legacy_stats(schain_name=None):
-    raw_data = read_json(SNAPSHOT_FILE_PATH)
+    raw_data = read_json(NETWORK_STATS_FILE_PATH)
     if schain_name:
         data_to_convert = raw_data['schains'].get(schain_name)
     else:
@@ -43,7 +43,7 @@ def get_legacy_stats(schain_name=None):
 
 
 def get_latest_stats(schain_name=None):
-    data = read_json(SNAPSHOT_FILE_PATH)
+    data = read_json(NETWORK_STATS_FILE_PATH)
     if schain_name:
         data_to_return = data['schains'].get(schain_name)
         data_to_return.update({

@@ -10,12 +10,15 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 PROJECT_PATH = os.path.join(DIR_PATH, os.pardir)
 DATA_DIR = os.path.join(PROJECT_PATH, 'data')
 META_DATA_PATH = os.path.join(DATA_DIR, 'meta.json')
+META_DUMP_PATH = os.path.join(DATA_DIR, 'meta-dump.json')
 ABI_FILEPATH = os.path.join(DATA_DIR, 'abi.json')
 
 
 DB_NAME = 'stats.db'
+DB_DUMP_NAME = 'stats-dump.db'
 DB_FILE_PATH = os.path.join(DATA_DIR, DB_NAME)
-SNAPSHOT_FILE_PATH = os.path.join(DATA_DIR, 'snapshot.json')
+DB_DUMP_PATH = os.path.join(DATA_DIR, DB_DUMP_NAME)
+NETWORK_STATS_FILE_PATH = os.path.join(DATA_DIR, 'network-stats.json')
 
 # Stats API
 FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT')
