@@ -25,6 +25,7 @@ from peewee import fn, IntegrityError
 
 from src import DB_FILE_PATH, DB_DUMP_PATH, META_DATA_PATH, META_DUMP_PATH
 from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
+from src.utils.helper import to_gwei, to_eth
 
 logger = logging.getLogger(__name__)
 MAX_ROWS_TO_INSERT = 1000
@@ -69,8 +70,9 @@ def update_daily_price_stats(schain_name):
         logger.debug(f'Updating {schain_name} gas fees saved for {day}')
         prices = DailyPrices.select().where(DailyPrices.date == day.date).get_or_none()
         if prices:
-            day.gas_fees_total_gwei = day.gas_total_used * prices.gas_price / 10 ** 9
-            day.gas_fees_total_eth = day.gas_total_used * prices.gas_price / 10 ** 18
+            gas_fees_wei = day.gas_total_used * prices.gas_price
+            day.gas_fees_total_gwei = to_gwei(gas_fees_wei)
+            day.gas_fees_total_eth = to_eth(gas_fees_wei)
             day.gas_fees_total_usd = day.gas_fees_total_eth * prices.eth_price
             day.save()
 

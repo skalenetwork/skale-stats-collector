@@ -20,6 +20,7 @@
 import json
 import logging
 import requests
+from web3 import Web3
 from functools import wraps
 from time import sleep
 
@@ -69,3 +70,11 @@ def daemon(delay=60):
                 sleep(delay)
         return wrapper
     return actual_decorator
+
+
+def to_gwei(wei):
+    return float(Web3.from_wei(wei, 'gwei'))
+
+
+def to_eth(wei):
+    return float(Web3.from_wei(wei, 'ether'))
