@@ -1,0 +1,37 @@
+version: '3.4'
+services:
+  explorer-admin:
+    container_name: stats-collector
+    image: "stats-collector:${TAG:-latest}"
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    environment:
+      ETH_ENDPOINT: ${ETH_ENDPOINT}
+      PROXY_DOMAIN: ${PROXY_DOMAIN}
+      ETH_API_KEY: ${ETH_API_KEY}
+      SCHAIN_NAMES: ${SCHAIN_NAMES}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/skale-stats-collector/data
+    command: "python src/collector/main.py"
+  stats-api:
+    container_name: stats-collector-api
+    image: "stats-collector-api:${TAG:-latest}"
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      FLASK_APP: core/api/app.py
+      FLASK_APP_HOST: ${FLASK_APP_HOST}
+      FLASK_APP_PORT: ${FLASK_APP_PORT}
+      FLASK_HOST_PORT: ${FLASK_HOST_PORT}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/skale-stats-collector/data
+    ports:
+      - "${FLASK_HOST_PORT}:${FLASK_APP_PORT}"
+    command: "python src/api/app.py"
