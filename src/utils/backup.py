@@ -34,19 +34,16 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 logger = logging.getLogger(__name__)
 
 TAR_FILE = 'stats_backup.tar'
-FILES = ["stats-dump.db", "meta-dump.json", "network-stats.json"]
+FILES = ['stats-dump.db', 'meta-dump.json', 'network-stats.json']
 
 
 def archive_files(backup_dir=DATA_DIR):
-
     backup_file = tarfile.open(TAR_FILE, 'w')
     logger.info(f'Files to archive: {FILES}')
-    for x in FILES:
-        logger.info((os.path.join(backup_dir, x)))
-        backup_file.add(os.path.join(backup_dir, x))
-
-    for x in backup_file.getnames():
-        logger.info(f'file {x} added to archive {TAR_FILE}')
+    for f in FILES:
+        file_path = os.path.join(backup_dir, f)
+        logger.info(f'Adding {file_path}')
+        backup_file.add(file_path)
     backup_file.close()
     logger.info('Archiving completed')
 
