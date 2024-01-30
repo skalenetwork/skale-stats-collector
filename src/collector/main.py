@@ -26,6 +26,7 @@ from src.collector.database.ops import (create_tables, update_daily_price_stats,
                                         create_db_snapshot, reload_db_from_snapshot)
 from src.collector.core.endpoints import get_all_names, is_dkg_passed, get_schain_endpoint
 from src.collector.core.fetchers import Collector, PricesCollector
+from src.utils.backup import backup_data
 from src.utils.helper import daemon, write_json
 from src.utils.logger import init_logger
 from src.utils.meta import create_meta_file, get_meta_file, update_meta_file
@@ -54,6 +55,7 @@ def update_statistics():
     else:
         logger.warning('Network stats are invalid')
         reload_db_from_snapshot()
+    backup_data()
 
 
 def refresh_meta():
