@@ -13,6 +13,11 @@ services:
       PROXY_DOMAIN: ${PROXY_DOMAIN}
       ETH_API_KEY: ${ETH_API_KEY}
       SCHAIN_NAMES: ${SCHAIN_NAMES}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+      UPTIME_KUMA_URL: ${UPTIME_KUMA_URL
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/skale-stats-collector/data
