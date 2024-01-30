@@ -68,3 +68,14 @@ def get_last_price_date():
 
 def update_meta_file(meta_data):
     write_json(META_DATA_PATH, meta_data)
+
+
+def get_last_backup_date():
+    meta = get_meta_file()
+    return meta.get('last_backup_date', '2021-01-01')
+
+
+def update_last_backup_date(last_backup_date):
+    meta = get_meta_file()
+    meta['last_backup_date'] = last_backup_date
+    update_meta_file(meta)
