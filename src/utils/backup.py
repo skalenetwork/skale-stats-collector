@@ -56,9 +56,7 @@ def send_to_s3(tar_file=TAR_FILE):
         aws_secret_access_key=AWS_SECRET_KEY
     )
 
-    response = s3_client.upload_file(tar_file, AWS_S3_BUCKET_NAME, tar_file)
-
-    logger.info(f'upload_log_to_aws response: {response}')
+    s3_client.upload_file(tar_file, AWS_S3_BUCKET_NAME, tar_file)
     logger.info(f'Uploading of {TAR_FILE} to S3 bucket completed')
 
 
