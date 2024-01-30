@@ -24,3 +24,12 @@ NETWORK_STATS_FILE_PATH = os.path.join(DATA_DIR, 'network-stats.json')
 FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT')
 FLASK_APP_HOST = os.environ.get('FLASK_APP_HOST')
 FLASK_HOST_PORT = os.environ.get('FLASK_HOST_PORT')
+
+# Backup
+AWS_S3_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME')
+AWS_REGION = os.environ.get('AWS_REGION')
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
+UPTIME_KUMA_URL = os.environ.get('UPTIME_KUMA_URL')
+RETRY_DELAY = 10
+RETRY_ATTEMPTS_COUNT = 6
