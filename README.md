@@ -18,9 +18,9 @@ SCHAIN_NAMES | Names of the specific chains to collect statistics from | -
 FLASK_APP_HOST | `0.0.0.0` by default | -
 FLASK_APP_PORT | `5000` by default | -
 FLASK_HOST_PORT | Port to run stats API (`3009` by default) | -
-AWS_S3_BUCKET_NAME | 
-AWS_REGION |
-AWS_ACCESS_KEY |
-AWS_SECRET_KEY |
-UPTIME_KUMA_URL |
+AWS_S3_BUCKET_NAME | Name of AWS S3 bucket | -
+AWS_REGION | AWS region of S3 bucket | -
+AWS_ACCESS_KEY | AWS access key ID | -
+AWS_SECRET_KEY | AWS secret key | - 
+UPTIME_KUMA_URL | URL to post a monitoring heartbeat to Uptime Kuma | -
 
