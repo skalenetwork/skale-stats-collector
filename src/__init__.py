@@ -21,9 +21,9 @@ DB_DUMP_PATH = os.path.join(DATA_DIR, DB_DUMP_NAME)
 NETWORK_STATS_FILE_PATH = os.path.join(DATA_DIR, 'network-stats.json')
 
 # Stats API
-FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT')
-FLASK_APP_HOST = os.environ.get('FLASK_APP_HOST')
-FLASK_HOST_PORT = os.environ.get('FLASK_HOST_PORT')
+FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT', '5000')
+FLASK_APP_HOST = os.environ.get('FLASK_APP_HOST', '0.0.0.0')
+FLASK_HOST_PORT = os.environ.get('FLASK_HOST_PORT', '3009')
 
 # Backup
 AWS_S3_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME')
