@@ -23,9 +23,9 @@ services:
       dockerfile: Dockerfile
     environment:
       FLASK_APP: core/api/app.py
-      FLASK_APP_HOST: ${FLASK_APP_HOST}
-      FLASK_APP_PORT: ${FLASK_APP_PORT}
-      FLASK_HOST_PORT: ${FLASK_HOST_PORT}
+      FLASK_APP_HOST: ${FLASK_APP_HOST:-0.0.0.0}
+      FLASK_APP_PORT: ${FLASK_APP_PORT:-5000}
+      FLASK_HOST_PORT: ${FLASK_HOST_PORT:-3009}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/skale-stats-collector/data
