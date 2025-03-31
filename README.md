@@ -14,6 +14,7 @@ Variable| Description | Required?
 ETH_ENDPOINT | Geth Endpoint for network | +
 PROXY_DOMAIN | Domain of sChains Proxy | +
 ETH_API_KEY | Key to interact with etherscan API | +
+MAIN_DATA_DIR | Path to Data directory on host | -
 SCHAIN_NAMES | Names of the specific chains to collect statistics from | -
 FLASK_APP_HOST | `0.0.0.0` by default | -
 FLASK_APP_PORT | `5000` by default | -
