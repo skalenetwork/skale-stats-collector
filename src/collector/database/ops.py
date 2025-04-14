@@ -121,7 +121,7 @@ def run_stats_query(schain_name, model, stats_fields, days_before=None,
             datetime.utcnow().today()
         ))
     if group_by_month:
-        stats_month = fn.strftime('%Y-%m', model.date)
+        stats_month = fn.DATE_FORMAT(model.date, '%Y-%m').alias('date')
         stats_fields.append(stats_month)
         query = model.select(*stats_fields).where(condition).group_by(stats_month)
     else:
