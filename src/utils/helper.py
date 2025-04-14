@@ -21,6 +21,7 @@ import json
 import logging
 import requests
 from web3 import Web3
+from decimal import Decimal
 from functools import wraps
 from time import sleep
 
@@ -32,9 +33,16 @@ def read_json(path, mode='r'):
         return json.load(data_file)
 
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return str(obj)
+        return super().default(obj)
+
+
 def write_json(path, content):
     with open(path, 'w') as outfile:
-        json.dump(content, outfile, indent=4)
+        json.dump(content, outfile, cls=DecimalEncoder, indent=4)
 
 
 def update_dict(target_dict, chain_dict):
