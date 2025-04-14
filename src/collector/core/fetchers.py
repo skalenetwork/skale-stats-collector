@@ -34,7 +34,7 @@ logging.getLogger("urllib3").setLevel(logging.ERROR)
 
 
 class Collector:
-    BLOCKS_BATCH_SIZE = 1000
+    BLOCKS_BATCH_SIZE = 10000
 
     def __init__(self, schain_name, from_block=None, to_block=None):
         self.schain_name = schain_name
