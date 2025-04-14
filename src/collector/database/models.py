@@ -18,18 +18,30 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from peewee import (Model, SqliteDatabase, PrimaryKeyField, IntegerField, FloatField,
+import os
+from playhouse.pool import PooledMySQLDatabase
+from peewee import (Model, PrimaryKeyField, IntegerField, FloatField,
                     DateField, CharField)
-from src import DB_FILE_PATH
+import sys
+from time import sleep
 
 logger = logging.getLogger(__name__)
 
 
-class BaseModel(Model):
-    database = SqliteDatabase(DB_FILE_PATH)
+db = PooledMySQLDatabase(
+    os.getenv('MYSQL_DATABASE'),
+    user=os.getenv('MYSQL_USER'),
+    password=os.getenv('MYSQL_PASSWORD'),
+    host=os.getenv('MYSQL_HOST'),
+    port=int(os.getenv('MYSQL_PORT', 3306)),
+    max_connections=8,
+    stale_timeout=300,
+)
 
+
+class BaseModel(Model):
     class Meta:
-        database = SqliteDatabase(DB_FILE_PATH)
+        database = db
 
 
 class PulledBlocks(BaseModel):
@@ -71,3 +83,21 @@ class DailyStatsRecord(BaseModel):
     gas_fees_total_gwei = FloatField(default=0)
     gas_fees_total_eth = FloatField(default=0)
     gas_fees_total_usd = FloatField(default=0)
+
+
+def wait_for_db():
+    for _ in range(30):
+        try:
+            db.connect()
+            db.close()
+            logger.info('Successfully connected to the database.')
+            return
+        except Exception as e:
+            logger.exception(e)
+            logger.warning(
+                f'Database connection failed. Retrying in {5} seconds...'
+            )
+            sleep(5)
+
+    logger.error('Failed to connect to the database after multiple attempts.')
+    sys.exit(1)
