@@ -30,6 +30,7 @@ from src.utils.backup import backup_data
 from src.utils.helper import daemon, write_json
 from src.utils.logger import init_logger
 from src.utils.meta import create_meta_file, get_meta_file, update_meta_file
+from src.collector.database.models import wait_for_db
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +52,11 @@ def update_statistics():
     if is_verified:
         write_json(NETWORK_STATS_FILE_PATH, network_stats)
         logger.info('Network stats are updated')
-        create_db_snapshot()
+        # create_db_snapshot()  # ASH
     else:
         logger.warning('Network stats are invalid')
         reload_db_from_snapshot()
-    backup_data()
+    # backup_data()  # ASH
 
 
 def refresh_meta():
@@ -76,6 +77,7 @@ def main():
     assert os.path.isfile(ABI_FILEPATH), "ABI not found"
     if not os.path.isfile(META_DATA_PATH):
         create_meta_file()
+    wait_for_db()
     create_tables()
     update_statistics()
 
