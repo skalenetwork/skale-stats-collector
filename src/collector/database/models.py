@@ -20,7 +20,7 @@
 import logging
 import os
 from playhouse.pool import PooledMySQLDatabase
-from peewee import (Model, PrimaryKeyField, IntegerField, FloatField,
+from peewee import (Model, PrimaryKeyField, IntegerField, BigIntegerField, FloatField, DoubleField,
                     DateField, CharField)
 import sys
 from time import sleep
@@ -56,8 +56,8 @@ class PulledBlocks(BaseModel):
 
 class DailyPrices(BaseModel):
     date = DateField(unique=True)
-    gas_price = IntegerField(default=0)
-    eth_price = FloatField(default=0)
+    gas_price = BigIntegerField(default=0)
+    eth_price = DoubleField(default=0)
 
 
 class UserStats(BaseModel):
@@ -79,10 +79,10 @@ class DailyStatsRecord(BaseModel):
     user_count_total = IntegerField(default=0)
     tx_count_total = IntegerField(default=0)
     block_count_total = IntegerField(default=0)
-    gas_total_used = FloatField(default=0)
-    gas_fees_total_gwei = FloatField(default=0)
-    gas_fees_total_eth = FloatField(default=0)
-    gas_fees_total_usd = FloatField(default=0)
+    gas_total_used = DoubleField(default=0)
+    gas_fees_total_gwei = DoubleField(default=0)
+    gas_fees_total_eth = DoubleField(default=0)
+    gas_fees_total_usd = DoubleField(default=0)
 
 
 def wait_for_db():
