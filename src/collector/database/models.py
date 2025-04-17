@@ -20,7 +20,7 @@
 import logging
 import os
 from playhouse.pool import PooledMySQLDatabase
-from peewee import (Model, PrimaryKeyField, IntegerField, BigIntegerField, FloatField, DoubleField,
+from peewee import (Model, PrimaryKeyField, IntegerField, BigIntegerField, DoubleField,
                     DateField, CharField)
 import sys
 from time import sleep
