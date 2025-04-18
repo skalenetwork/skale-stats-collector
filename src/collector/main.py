@@ -29,7 +29,7 @@ from src.collector.core.fetchers import Collector, PricesCollector
 from src.utils.helper import daemon, write_json
 from src.utils.logger import init_logger
 from src.utils.meta import create_meta_file, get_meta_file, update_meta_file
-from src.collector.database.models import wait_for_db
+from src.collector.database.db import wait_for_db
 
 logger = logging.getLogger(__name__)
 

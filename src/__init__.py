@@ -33,3 +33,9 @@ AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
 UPTIME_KUMA_URL = os.environ.get('UPTIME_KUMA_URL')
 RETRY_DELAY = 10
 RETRY_ATTEMPTS_COUNT = 6
+
+MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'stats_metrics')
+MYSQL_USER = os.getenv('MYSQL_USER')
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')
+MYSQL_PORT = int(os.getenv('MYSQL_PORT', 3306))
