@@ -1,4 +1,4 @@
-FROM python:3.10-buster
+FROM python:3.10-trixie
 
 RUN apt-get update
 COPY ./requirements.txt /skale-stats-collector/requirements.txt
