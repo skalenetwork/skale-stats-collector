@@ -22,7 +22,7 @@ import logging
 from datetime import datetime
 from web3 import Web3, HTTPProvider
 
-from src import ETH_API_KEY
+from src import ETH_API_KEY, ETH_API_URL
 from src.collector.database.ops import (insert_new_daily_prices, insert_new_block_data,
                                         insert_new_daily_users, update_daily_price_stats)
 from src.utils.helper import download_via_url
@@ -88,8 +88,6 @@ class Collector:
 
 
 class PricesCollector:
-    ETH_API_URL = 'https://api.etherscan.io/api'
-
     def __init__(self):
         self.last_updated = get_last_price_date()
 
@@ -108,7 +106,7 @@ class PricesCollector:
             logger.warning('Gas saved stats not updated')
 
     def fetch_daily_prices(self, start_date, end_date):
-        _gas_prices = self.get_gas_prices(start_date, end_date)
+        _gas_prices = self.get_eth_gas_prices(start_date, end_date)
         _gas_prices = {i['UTCDate']: i['avgGasPrice_Wei'] for i in _gas_prices}
 
         _eth_prices = self.get_eth_prices(start_date, end_date)
@@ -124,8 +122,8 @@ class PricesCollector:
         return False
 
     @staticmethod
-    def get_gas_prices(start_date, end_date):
-        url = f'{PricesCollector.ETH_API_URL}?module=stats&action=dailyavggasprice&' \
+    def get_eth_gas_prices(start_date, end_date):
+        url = f'{ETH_API_URL}&module=stats&action=dailyavggasprice&' \
               f'startdate={start_date}&' \
               f'enddate={end_date}&' \
               f'sort=asc&' \
@@ -134,7 +132,7 @@ class PricesCollector:
 
     @staticmethod
     def get_eth_prices(start_date, end_date):
-        url = f'{PricesCollector.ETH_API_URL}?module=stats&action=ethdailyprice&' \
+        url = f'{ETH_API_URL}&module=stats&action=ethdailyprice&' \
               f'startdate={start_date}&' \
               f'enddate={end_date}&' \
               f'sort=asc&' \

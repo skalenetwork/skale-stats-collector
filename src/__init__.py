@@ -19,6 +19,7 @@ DB_DUMP_NAME = 'stats-dump.db'
 DB_FILE_PATH = os.path.join(DATA_DIR, DB_NAME)
 DB_DUMP_PATH = os.path.join(DATA_DIR, DB_DUMP_NAME)
 NETWORK_STATS_FILE_PATH = os.path.join(DATA_DIR, 'network-stats.json')
+ETH_API_URL = 'https://api.etherscan.io/v2/api?chainid=1'
 
 # Stats API
 FLASK_APP_PORT = os.environ.get('FLASK_APP_PORT')
