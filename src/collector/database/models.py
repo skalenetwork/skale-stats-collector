@@ -24,12 +24,16 @@ from src import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)
 
+db = SqliteDatabase(DB_FILE_PATH)
 
 class BaseModel(Model):
-    database = SqliteDatabase(DB_FILE_PATH)
-
     class Meta:
-        database = SqliteDatabase(DB_FILE_PATH)
+        database = db
+
+
+class LastPulledData(BaseModel):
+    schain_name = CharField(unique=True)
+    block_number = IntegerField()
 
 
 class PulledBlocks(BaseModel):

@@ -40,14 +40,14 @@ class Collector:
         self.schain_name = schain_name
         self.endpoint = get_schain_endpoint(schain_name)
         self.web3 = Web3(HTTPProvider(self.endpoint))
-        self.last_block = from_block if from_block else get_last_block(self.schain_name)
+        self.from_block = from_block if from_block else get_last_block(self.schain_name) + 1
         self.to_block = to_block
         self.stats = {}
 
     def catchup_blocks(self):
         try:
             latest_block = self.to_block if self.to_block else self.web3.eth.get_block_number()
-            first_batch_block = self.last_block
+            first_batch_block = self.from_block
             last_batch_block = min(first_batch_block + self.BLOCKS_BATCH_SIZE, latest_block)
             logger.info(f'Catching up blocks from {first_batch_block} to {latest_block}')
             while first_batch_block < latest_block:
@@ -66,9 +66,10 @@ class Collector:
                        range(first_batch_block, last_batch_block)]
             for thread in concurrent.futures.as_completed(futures):
                 results.append(thread.result())
+        results.sort(key=lambda block: block['number'])
         logger.info(f'Writing {len(results)} blocks to DB')
         self.insert_block_batch(results)
-        update_last_block(self.schain_name, last_batch_block)
+        update_last_block(self.schain_name, last_batch_block - 1)
 
     def download(self, block_number):
         return self.web3.eth.get_block(block_number, True)
