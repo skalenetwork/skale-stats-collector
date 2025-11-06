@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from peewee import fn, IntegrityError
 
 from src import DB_FILE_PATH, DB_DUMP_PATH, META_DATA_PATH, META_DUMP_PATH
-from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats,
+from src.collector.database.models import (DailyStatsRecord, UserStats,
                                            DailyPrices, LastPulledData, db)
 from src.utils.helper import to_gwei, to_eth
 
@@ -113,10 +113,6 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
     return metrics_stats
 
 
-def count_pulled_blocks(schain_name):
-    return PulledBlocks.select().where(PulledBlocks.schain_name == schain_name).count()
-
-
 def last_pulled_block(schain_name):
     last_block = LastPulledData.get(
         LastPulledData.schain_name == schain_name).block_number
@@ -174,9 +170,9 @@ def create_tables():
         logger.info('Creating UserStats table...')
         UserStats.create_table()
 
-    if not PulledBlocks.table_exists():
-        logger.info('Creating PulledBlocks table...')
-        PulledBlocks.create_table()
+    if not LastPulledData.table_exists():
+        logger.info('Creating LastPulledData table...')
+        LastPulledData.create_table()
 
     if not DailyPrices.table_exists():
         logger.info('Creating DailyPrices table...')
