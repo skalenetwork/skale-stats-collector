@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 db = SqliteDatabase(DB_FILE_PATH)
 
+
 def run():
     logger.info('Running migration: 001_regroup_userstats')
 
@@ -56,10 +57,34 @@ def run():
         db.execute_sql('DROP INDEX IF EXISTS userstats_address_date_schain_name;')
         db.execute_sql('CREATE UNIQUE INDEX IF NOT EXISTS userstats_schain_name_date_address ON userstats (schain_name, date, address);')
 
-        # Reclaim free space
-        logger.info('Running VACUUM to reclaim free space...')
-        db.execute_sql('VACUUM;')
-        logger.info('Database VACUUM complete')
+        # Create the LastPulledData table if it doesn’t exist
+        db.execute_sql('''
+            CREATE TABLE IF NOT EXISTS lastpulleddata (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                schain_name TEXT UNIQUE NOT NULL,
+                block_number INTEGER NOT NULL
+            );
+        ''')
+
+        # Insert or update the latest block per schain_name
+        db.execute_sql('''
+            INSERT INTO lastpulleddata (schain_name, block_number)
+            SELECT schain_name, MAX(block_number) AS last_block
+            FROM pulledblocks
+            GROUP BY schain_name
+            ON CONFLICT(schain_name)
+            DO UPDATE SET block_number = excluded.block_number
+            WHERE excluded.block_number > lastpulleddata.block_number;
+        ''')
+
+        db.execute_sql('DROP TABLE pulledblocks;')
+
+        logger.info('LastPulledData table migrated successfully')
+
+    # Reclaim free space
+    logger.info('Running VACUUM to reclaim free space...')
+    db.execute_sql('VACUUM;')
+    logger.info('Database VACUUM complete')
 
     logger.info("Migration 001_regroup_userstats completed successfully.")
 
