@@ -2,6 +2,8 @@ import logging
 import datetime
 from peewee import SqliteDatabase
 from src import DB_FILE_PATH
+from src.collector.database.ops import last_pulled_block
+from src.utils.meta import get_meta_file, update_meta_file
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -80,6 +82,14 @@ def run():
         db.execute_sql('DROP TABLE pulledblocks;')
 
         logger.info('LastPulledData table migrated successfully')
+
+    meta = get_meta_file()
+    for name in meta['schains'].keys():
+        last_updated_block = last_pulled_block(name)
+        meta['schains'][name].update({
+            'last_updated_block': last_updated_block
+        })
+    update_meta_file(meta)
 
     # Reclaim free space
     logger.info('Running VACUUM to reclaim free space...')
