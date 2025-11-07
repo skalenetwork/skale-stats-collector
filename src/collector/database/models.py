@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 db = SqliteDatabase(DB_FILE_PATH)
 
+
 class BaseModel(Model):
     class Meta:
         database = db

@@ -57,7 +57,8 @@ def run():
         # Change userstats index order
         logger.info('Recreating old userstats indexes')
         db.execute_sql('DROP INDEX IF EXISTS userstats_address_date_schain_name;')
-        db.execute_sql('CREATE UNIQUE INDEX IF NOT EXISTS userstats_schain_name_date_address ON userstats (schain_name, date, address);')
+        db.execute_sql('CREATE UNIQUE INDEX IF NOT EXISTS userstats_schain_name_date_address'
+                       ' ON userstats (schain_name, date, address);')
 
         # Create the LastPulledData table if it doesn’t exist
         db.execute_sql('''
@@ -97,6 +98,7 @@ def run():
     logger.info('Database VACUUM complete')
 
     logger.info("Migration 001_regroup_userstats completed successfully.")
+
 
 if __name__ == '__main__':
     run()

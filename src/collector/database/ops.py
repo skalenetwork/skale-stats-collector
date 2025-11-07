@@ -40,8 +40,12 @@ def insert_new_block_data(schain_name, number, date, txs, gas):
                 defaults={'block_number': number}
             )
             if last_pulled_data.block_number != number - 1:
-                raise IntegrityError(f'Block sequence mismatch, last block in db - {last_pulled_data.block_number}')
-            daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
+                raise IntegrityError(f'Block sequence mismatch, last block in db'
+                                     f' - {last_pulled_data.block_number}')
+            daily_record, created = DailyStatsRecord.get_or_create(
+                date=date,
+                schain_name=schain_name
+            )
             daily_record.block_count_total += 1
             daily_record.tx_count_total += txs
             daily_record.gas_total_used += gas
@@ -88,7 +92,6 @@ def update_daily_price_stats(schain_name):
 
 
 def get_total_data(schain_name, days_before=None, group_by_month=False):
-    logger.info(f'get_total_data: {schain_name}, {days_before}, {group_by_month}')
     tx_total = fn.SUM(DailyStatsRecord.tx_count_total)
     gas_total = fn.SUM(DailyStatsRecord.gas_total_used)
     gas_fees_total_gwei = fn.SUM(DailyStatsRecord.gas_fees_total_gwei)
@@ -101,7 +104,6 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
                                     [tx_total, blocks_total, gas_total, gas_fees_total_gwei,
                                      gas_fees_total_eth, gas_fees_total_usd],
                                     days_before, group_by_month)
-    logger.info(f'get user data')
     users_stats = run_stats_query(schain_name, UserStats, [users_total],
                                   days_before, group_by_month)
     if group_by_month:
