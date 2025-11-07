@@ -51,7 +51,6 @@ def insert_new_block_data(schain_name, number, date, txs, gas):
             last_pulled_data.save()
     except IntegrityError as e:
         logger.warning(f'Could not write block {number} for {schain_name}: {e}')
-        raise IntegrityError
 
 
 def insert_new_daily_users(schain_name, date, users):

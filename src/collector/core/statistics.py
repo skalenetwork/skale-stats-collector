@@ -36,7 +36,7 @@ def get_schain_stats(schain_name):
 
 
 def verify_schain_stats_data(schain_name, stats_data):
-    total_blocks_meta = get_last_block(schain_name)
+    total_blocks_meta = get_last_block(schain_name) + 1
     total_blocks_db = last_pulled_block(schain_name) + 1
     stats_blocks_sum = stats_data['total']['block_count_total']
     if total_blocks_meta == total_blocks_db and stats_blocks_sum == total_blocks_db:
