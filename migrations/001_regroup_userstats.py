@@ -26,7 +26,7 @@ def run():
                 address TEXT NOT NULL,
                 date DATE NOT NULL,
                 schain_name TEXT NOT NULL,
-                UNIQUE(address, schain_name, date)
+                UNIQUE(schain_name, date, address)
             );
         ''')
 
