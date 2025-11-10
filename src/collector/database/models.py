@@ -50,7 +50,7 @@ class UserStats(BaseModel):
 
     class Meta:
         indexes = (
-            (('address', 'date', 'schain_name'), True),
+            (('schain_name', 'date', 'address'), True),
         )
 
 
