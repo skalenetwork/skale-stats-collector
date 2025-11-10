@@ -24,7 +24,8 @@ from datetime import datetime, timedelta
 from peewee import fn, IntegrityError
 
 from src import DB_FILE_PATH, DB_DUMP_PATH, META_DATA_PATH, META_DUMP_PATH
-from src.collector.database.models import (DailyStatsRecord, PulledBlocks, UserStats, DailyPrices)
+from src.collector.database.models import (DailyStatsRecord, UserStats,
+                                           DailyPrices, LastPulledData, db)
 from src.utils.helper import to_gwei, to_eth
 
 logger = logging.getLogger(__name__)
@@ -33,14 +34,28 @@ MAX_ROWS_TO_INSERT = 1000
 
 def insert_new_block_data(schain_name, number, date, txs, gas):
     try:
-        PulledBlocks.create(schain_name=schain_name, block_number=number).save()
-        daily_record, created = DailyStatsRecord.get_or_create(date=date, schain_name=schain_name)
-        daily_record.block_count_total += 1
-        daily_record.tx_count_total += txs
-        daily_record.gas_total_used += gas
-        daily_record.save()
-    except IntegrityError:
-        logger.warning(f'Could not write block {number} for {schain_name}')
+        with db.atomic():
+            last_pulled_data, block_created = LastPulledData.get_or_create(
+                schain_name=schain_name,
+                defaults={'block_number': number}
+            )
+            if not block_created and last_pulled_data.block_number != number - 1:
+                raise IntegrityError(f'Block sequence mismatch, last block in db'
+                                     f' - {last_pulled_data.block_number}')
+            daily_record, created = DailyStatsRecord.get_or_create(
+                date=date,
+                schain_name=schain_name
+            )
+            daily_record.block_count_total += 1
+            daily_record.tx_count_total += txs
+            daily_record.gas_total_used += gas
+            daily_record.save()
+
+            if not block_created:
+                last_pulled_data.block_number = number
+                last_pulled_data.save()
+    except IntegrityError as e:
+        logger.warning(f'Could not write block {number} for {schain_name}: {e}')
 
 
 def insert_new_daily_users(schain_name, date, users):
@@ -100,16 +115,12 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
     return metrics_stats
 
 
-def count_pulled_blocks(schain_name):
-    return PulledBlocks.select().where(PulledBlocks.schain_name == schain_name).count()
-
-
 def last_pulled_block(schain_name):
-    last_block = PulledBlocks.select(fn.MAX(PulledBlocks.block_number)).where(
-        PulledBlocks.schain_name == schain_name).scalar()
-    if not last_block:
-        return 0
-    return last_block
+    record = LastPulledData.get_or_none(
+        LastPulledData.schain_name == schain_name)
+    if not record:
+        return -1
+    return record.block_number
 
 
 def run_stats_query(schain_name, model, stats_fields, days_before=None,
@@ -161,9 +172,9 @@ def create_tables():
         logger.info('Creating UserStats table...')
         UserStats.create_table()
 
-    if not PulledBlocks.table_exists():
-        logger.info('Creating PulledBlocks table...')
-        PulledBlocks.create_table()
+    if not LastPulledData.table_exists():
+        logger.info('Creating LastPulledData table...')
+        LastPulledData.create_table()
 
     if not DailyPrices.table_exists():
         logger.info('Creating DailyPrices table...')

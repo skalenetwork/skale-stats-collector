@@ -24,22 +24,17 @@ from src import DB_FILE_PATH
 
 logger = logging.getLogger(__name__)
 
+db = SqliteDatabase(DB_FILE_PATH)
+
 
 class BaseModel(Model):
-    database = SqliteDatabase(DB_FILE_PATH)
-
     class Meta:
-        database = SqliteDatabase(DB_FILE_PATH)
+        database = db
 
 
-class PulledBlocks(BaseModel):
-    schain_name = CharField()
+class LastPulledData(BaseModel):
+    schain_name = CharField(unique=True)
     block_number = IntegerField()
-
-    class Meta:
-        indexes = (
-            (('schain_name', 'block_number'), True),
-        )
 
 
 class DailyPrices(BaseModel):
@@ -55,7 +50,7 @@ class UserStats(BaseModel):
 
     class Meta:
         indexes = (
-            (('address', 'date', 'schain_name'), True),
+            (('schain_name', 'date', 'address'), True),
         )
 
 

@@ -19,7 +19,7 @@
 
 import logging
 from datetime import datetime
-from src.collector.database.ops import get_total_data, count_pulled_blocks
+from src.collector.database.ops import get_total_data, last_pulled_block
 from src.utils.helper import update_dict
 from src.utils.meta import get_last_block
 
@@ -36,8 +36,8 @@ def get_schain_stats(schain_name):
 
 
 def verify_schain_stats_data(schain_name, stats_data):
-    total_blocks_meta = get_last_block(schain_name)
-    total_blocks_db = count_pulled_blocks(schain_name)
+    total_blocks_meta = get_last_block(schain_name) + 1
+    total_blocks_db = last_pulled_block(schain_name) + 1
     stats_blocks_sum = stats_data['total']['block_count_total']
     if total_blocks_meta == total_blocks_db and stats_blocks_sum == total_blocks_db:
         return True
