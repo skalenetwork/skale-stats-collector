@@ -35,11 +35,11 @@ MAX_ROWS_TO_INSERT = 1000
 def insert_new_block_data(schain_name, number, date, txs, gas):
     try:
         with db.atomic():
-            last_pulled_data, created = LastPulledData.get_or_create(
+            last_pulled_data, block_created = LastPulledData.get_or_create(
                 schain_name=schain_name,
                 defaults={'block_number': number}
             )
-            if last_pulled_data.block_number != number - 1:
+            if not block_created and last_pulled_data.block_number != number - 1:
                 raise IntegrityError(f'Block sequence mismatch, last block in db'
                                      f' - {last_pulled_data.block_number}')
             daily_record, created = DailyStatsRecord.get_or_create(
@@ -51,8 +51,9 @@ def insert_new_block_data(schain_name, number, date, txs, gas):
             daily_record.gas_total_used += gas
             daily_record.save()
 
-            last_pulled_data.block_number = number
-            last_pulled_data.save()
+            if not block_created:
+                last_pulled_data.block_number = number
+                last_pulled_data.save()
     except IntegrityError as e:
         logger.warning(f'Could not write block {number} for {schain_name}: {e}')
 
@@ -115,11 +116,11 @@ def get_total_data(schain_name, days_before=None, group_by_month=False):
 
 
 def last_pulled_block(schain_name):
-    last_block = LastPulledData.get(
-        LastPulledData.schain_name == schain_name).block_number
-    if not last_block:
-        return 0
-    return last_block
+    record = LastPulledData.get_or_none(
+        LastPulledData.schain_name == schain_name)
+    if not record:
+        return -1
+    return record.block_number
 
 
 def run_stats_query(schain_name, model, stats_fields, days_before=None,
