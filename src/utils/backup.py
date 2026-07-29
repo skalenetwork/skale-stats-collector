@@ -33,12 +33,13 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 logger = logging.getLogger(__name__)
 
-TAR_FILE = 'stats_backup.tar'
+TAR_FILENAME = 'stats_backup.tar'
+TAR_FILEPATH = os.path.join(DATA_DIR, TAR_FILENAME)
 FILES = ['stats-dump.db', 'meta-dump.json', 'network-stats.json']
 
 
 def archive_files(backup_dir=DATA_DIR):
-    backup_file = tarfile.open(TAR_FILE, 'w')
+    backup_file = tarfile.open(TAR_FILEPATH, 'w')
     logger.info(f'Files to archive: {FILES}')
     for f in FILES:
         file_path = os.path.join(backup_dir, f)
@@ -48,7 +49,7 @@ def archive_files(backup_dir=DATA_DIR):
     logger.info('Archiving completed')
 
 
-def send_to_s3(tar_file=TAR_FILE):
+def send_to_s3(tar_file=TAR_FILEPATH):
     s3_client = boto3.client(
         service_name='s3',
         region_name=AWS_REGION,
@@ -56,8 +57,8 @@ def send_to_s3(tar_file=TAR_FILE):
         aws_secret_access_key=AWS_SECRET_KEY
     )
 
-    s3_client.upload_file(tar_file, AWS_S3_BUCKET_NAME, tar_file)
-    logger.info(f'Uploading of {TAR_FILE} to S3 bucket completed')
+    s3_client.upload_file(tar_file, AWS_S3_BUCKET_NAME, TAR_FILENAME)
+    logger.info(f'Uploading of {tar_file} to S3 bucket completed')
 
 
 @retry(stop=stop_after_attempt(RETRY_ATTEMPTS_COUNT), wait=wait_fixed(RETRY_DELAY))
@@ -76,3 +77,4 @@ def backup_data():
     send_to_s3()
     update_last_backup_date(current_date)
     heartbeat()
+    os.remove(TAR_FILEPATH)
